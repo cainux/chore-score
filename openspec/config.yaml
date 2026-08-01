@@ -30,3 +30,7 @@ schema: spec-driven
 #     archive:
 #       guidance:
 #         - Summarize the archive outcome before finishing
+
+rules:
+  design:
+    - Include a mermaid diagram of the data flow
