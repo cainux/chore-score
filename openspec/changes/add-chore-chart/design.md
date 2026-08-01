@@ -55,11 +55,11 @@ CREATE TABLE task_lists (
 );
 ```
 
-*Why:* it makes "marking is idempotent" and "clearing leaves no residue" fall out of `INSERT OR IGNORE` and `DELETE`, with no update path and no tri-state to reason about. Trophy status is then a `COUNT(*) = 7` over a week's dates.
+_Why:_ it makes "marking is idempotent" and "clearing leaves no residue" fall out of `INSERT OR IGNORE` and `DELETE`, with no update path and no tri-state to reason about. Trophy status is then a `COUNT(*) = 7` over a week's dates.
 
-*Alternative considered:* a `earned BOOLEAN` column. Rejected — it introduces a third state (row exists, earned = false) that means nothing to this system and would need to be handled everywhere.
+_Alternative considered:_ a `earned BOOLEAN` column. Rejected — it introduces a third state (row exists, earned = false) that means nothing to this system and would need to be handled everywhere.
 
-*Alternative considered:* storing trophies as their own records. Rejected — the spec requires that editing a day mark immediately changes trophy status, so deriving it is both simpler and correct by construction.
+_Alternative considered:_ storing trophies as their own records. Rejected — the spec requires that editing a day mark immediately changes trophy status, so deriving it is both simpler and correct by construction.
 
 ### D2. UTC everywhere; exactly one function knows about London
 
@@ -83,38 +83,38 @@ londonToday(now: Date): string   // → 'YYYY-MM-DD'
 
 It answers "which calendar date is it for this family right now", because the chart is on a wall in a UK kitchen and its day must end when theirs does. During BST, London midnight is 23:00 UTC the previous day, so without this the app would disagree with the wall clock for the hour after midnight, seven months of the year.
 
-*Why isolate rather than spread:* every other function takes a `YYYY-MM-DD` string and is therefore trivially testable with no clock, no zone, and no mocking. The timezone question is asked once, at the edge, and never again.
+_Why isolate rather than spread:_ every other function takes a `YYYY-MM-DD` string and is therefore trivially testable with no clock, no zone, and no mocking. The timezone question is asked once, at the edge, and never again.
 
-*Constraint for implementers:* `londonToday` is the only place `Europe/London` may appear. Any other use of a named timezone, or of a local-time API such as `getDate()`, `getDay()`, or `getHours()`, is a defect.
+_Constraint for implementers:_ `londonToday` is the only place `Europe/London` may appear. Any other use of a named timezone, or of a local-time API such as `getDate()`, `getDay()`, or `getHours()`, is a defect.
 
-*Risk:* this relies on Workers having full ICU data for named timezones. Verify early (see Risks).
+_Risk:_ this relies on Workers having full ICU data for named timezones. Verify early (see Risks).
 
 ### D3. Server-rendered with SvelteKit form actions; JavaScript is an enhancement
 
 Both routes are server-rendered. Admin mutations are SvelteKit **form actions**, so toggling a square is a real form POST that works with JavaScript disabled. `use:enhance` layers on optimistic toggling so it feels instant on a phone, reverting the square and surfacing an error if the POST fails.
 
-*Why:* the display page has a hard requirement to be complete at load, which rules out client-side data fetching. Using the same server-first shape on admin means one mental model, and the failure-visibility requirement is satisfied by the framework rather than by hand-rolled state.
+_Why:_ the display page has a hard requirement to be complete at load, which rules out client-side data fetching. Using the same server-first shape on admin means one mental model, and the failure-visibility requirement is satisfied by the framework rather than by hand-rolled state.
 
-*Alternative considered:* a JSON API with client-side rendering on admin. Rejected — more moving parts for two users and one screen, and it would make the two pages diverge structurally for no benefit.
+_Alternative considered:_ a JSON API with client-side rendering on admin. Rejected — more moving parts for two users and one screen, and it would make the two pages diverge structurally for no benefit.
 
 ### D4. Two independent gates in `hooks.server.ts`
 
-| Route | Gate | Mechanism |
-|---|---|---|
-| `/display` | Secret HTTP header | Constant-time compare against a configured secret |
-| `/admin/*` | Shared password | Signed, `HttpOnly` + `Secure` + `SameSite=Lax` cookie, long expiry |
+| Route      | Gate               | Mechanism                                                          |
+| ---------- | ------------------ | ------------------------------------------------------------------ |
+| `/display` | Secret HTTP header | Constant-time compare against a configured secret                  |
+| `/admin/*` | Shared password    | Signed, `HttpOnly` + `Secure` + `SameSite=Lax` cookie, long expiry |
 
 The gates do not overlap: an authenticated parent hitting `/display` without the header is rejected, and the header does not grant admin. Both secrets come from Worker environment bindings and the app fails closed if either is absent.
 
-*Why signed rather than random-token-in-a-table:* no session table to store, expire, or clean up. The cookie carries an issued-at timestamp and an HMAC over it; verification is a signature check plus an expiry comparison.
+_Why signed rather than random-token-in-a-table:_ no session table to store, expire, or clean up. The cookie carries an issued-at timestamp and an HMAC over it; verification is a signature check plus an expiry comparison.
 
-*Alternative considered:* Cloudflare Access in front of `/admin`. Genuinely tempting given Cloudflare is already in use, and it would remove password handling entirely. Rejected for now because it adds an identity-provider dependency to a two-person family app, but it is the obvious upgrade path if the shared password becomes annoying.
+_Alternative considered:_ Cloudflare Access in front of `/admin`. Genuinely tempting given Cloudflare is already in use, and it would remove password handling entirely. Rejected for now because it adds an identity-provider dependency to a two-person family app, but it is the obvious upgrade path if the shared password becomes annoying.
 
 ### D5. Everything on the display page is inline and self-hosted
 
 The star and trophy are inline SVG. The typeface is a bundled `woff2` served by the app itself. No external requests of any kind.
 
-*Why:* the Screenshot plugin captures whatever is on screen when it fires. Any resource fetched from a third party is a race the screenshot can lose, and losing it means a fallback font or a missing glyph on the kitchen wall until the next refresh.
+_Why:_ the Screenshot plugin captures whatever is on screen when it fires. Any resource fetched from a third party is a race the screenshot can lose, and losing it means a fallback font or a missing glyph on the kitchen wall until the next refresh.
 
 The display response also sets `Cache-Control: no-store`, so TRMNL never screenshots a cached copy of yesterday's chart.
 
@@ -148,17 +148,17 @@ The display page is not responsive. It is a fixed 800×480 canvas, because it ha
 
 Vertical budget out of 480 px:
 
-| Band | Height |
-|---|---|
-| Padding (top + bottom) | 24 |
-| Task blocks | 180 (grows into the slack) |
-| Rule + spacing | 14 |
-| Week labels | 20 |
-| Weekday letters | 22 |
-| Two child rows | 144 |
-| **Slack** | **~76** |
+| Band                   | Height                     |
+| ---------------------- | -------------------------- |
+| Padding (top + bottom) | 24                         |
+| Task blocks            | 180 (grows into the slack) |
+| Rule + spacing         | 14                         |
+| Week labels            | 20                         |
+| Weekday letters        | 22                         |
+| Two child rows         | 144                        |
+| **Slack**              | **~76**                    |
 
-*Why absolute pixels:* a fluid layout on a fixed single-viewport target only introduces ways for the chart to be subtly wrong. Hard numbers mean the layout can be verified against the real panel once and then trusted.
+_Why absolute pixels:_ a fluid layout on a fixed single-viewport target only introduces ways for the chart to be subtly wrong. Hard numbers mean the layout can be verified against the real panel once and then trusted.
 
 ### D7. Square states map to specific grey levels
 
@@ -183,12 +183,12 @@ stateDiagram-v2
     end note
 ```
 
-| Element | Level | Hex |
-|---|---|---|
-| Stickers, names, task text | black | `#000000` |
-| Weekday letters, week labels, trophy | dark grey | `#555555` |
-| Grid lines, future-day dots | light grey | `#AAAAAA` |
-| Background, missed squares | white | `#FFFFFF` |
+| Element                              | Level      | Hex       |
+| ------------------------------------ | ---------- | --------- |
+| Stickers, names, task text           | black      | `#000000` |
+| Weekday letters, week labels, trophy | dark grey  | `#555555` |
+| Grid lines, future-day dots          | light grey | `#AAAAAA` |
+| Background, missed squares           | white      | `#FFFFFF` |
 
 Sticking to values near the panel's four actual levels keeps the device's own quantisation from dithering solid areas into texture.
 
@@ -238,12 +238,12 @@ The loop closes only on TRMNL's polling interval: a parent toggles a square, D1 
 
 The admin page deliberately does **not** mirror the display. The two pages answer different questions:
 
-| | Display | Admin |
-|---|---|---|
-| Question | "How are we doing?" | "Tick tonight off" |
-| Viewer | Whole family, ambient | One parent, deliberate |
-| Frequency | Glanced at constantly | Opened once a day |
-| Shape | Fixed 800×480 canvas | Single scrolling column |
+|           | Display               | Admin                   |
+| --------- | --------------------- | ----------------------- |
+| Question  | "How are we doing?"   | "Tick tonight off"      |
+| Viewer    | Whole family, ambient | One parent, deliberate  |
+| Frequency | Glanced at constantly | Opened once a day       |
+| Shape     | Fixed 800×480 canvas  | Single scrolling column |
 
 Roughly 95% of admin visits are one parent, in the evening, recording that today went fine. That action gets the top of the page and the largest targets. Corrections and task edits are rarer and sit below the fold.
 
@@ -288,20 +288,20 @@ Roughly 95% of admin visits are one parent, in the evening, recording that today
 
 Sizing at a 390 px viewport:
 
-| Element | Size | Note |
-|---|---|---|
-| Today card | ~170 × 170 | Two side by side with a gutter; unmissable |
-| Correction cell | 44 × 44 | Exactly the minimum touch target |
-| Name gutter | ~46 px | `390 − 46 = 344`, and `344 / 7 ≈ 49 px` per column |
-| Task field | full width | Auto-growing textarea |
+| Element         | Size       | Note                                               |
+| --------------- | ---------- | -------------------------------------------------- |
+| Today card      | ~170 × 170 | Two side by side with a gutter; unmissable         |
+| Correction cell | 44 × 44    | Exactly the minimum touch target                   |
+| Name gutter     | ~46 px     | `390 − 46 = 344`, and `344 / 7 ≈ 49 px` per column |
+| Task field      | full width | Auto-growing textarea                              |
 
 The weeks stack rather than sitting side by side — 14 targets across 390 px would be 24 px each, well under the minimum. Stacked, each week gets its own row of seven at 49 px, comfortably above it.
 
 **Two surfaces, one underlying mark.** Today appears both as a big card and as a cell in the correction grid. They write the same `day_marks` row, so the correction grid re-renders after a today toggle and vice versa. No separate state.
 
-*Why explicit save on tasks but not on day marks:* a day mark is one bit and toggling it is unambiguous, so persisting immediately is right. Task text is typed over many keystrokes, and auto-saving would publish half-typed lines to the kitchen wall. The Save button appears only when the field differs from what is stored, which also gives the parent a visible answer to "did that save?".
+_Why explicit save on tasks but not on day marks:_ a day mark is one bit and toggling it is unambiguous, so persisting immediately is right. Task text is typed over many keystrokes, and auto-saving would publish half-typed lines to the kitchen wall. The Save button appears only when the field differs from what is stored, which also gives the parent a visible answer to "did that save?".
 
-*Alternative considered:* a separate tasks screen, reached from a button. Rejected — it is one more navigation step for something a parent does while standing up, and the whole page is small enough that scrolling to it is cheaper than routing to it.
+_Alternative considered:_ a separate tasks screen, reached from a button. Rejected — it is one more navigation step for something a parent does while standing up, and the whole page is small enough that scrolling to it is cheaper than routing to it.
 
 ## Risks / Trade-offs
 
