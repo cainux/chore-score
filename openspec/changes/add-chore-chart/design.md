@@ -221,27 +221,74 @@ The loop closes only on TRMNL's polling interval: a parent toggles a square, D1 
 
 ## Admin layout
 
-Same grid, different job — every square is a submit button, sized for a thumb.
+### D8. The admin page is designed for the phone, not derived from the wall
+
+The admin page deliberately does **not** mirror the display. The two pages answer different questions:
+
+| | Display | Admin |
+|---|---|---|
+| Question | "How are we doing?" | "Tick tonight off" |
+| Viewer | Whole family, ambient | One parent, deliberate |
+| Frequency | Glanced at constantly | Opened once a day |
+| Shape | Fixed 800×480 canvas | Single scrolling column |
+
+Roughly 95% of admin visits are one parent, in the evening, recording that today went fine. That action gets the top of the page and the largest targets. Corrections and task edits are rarer and sit below the fold.
 
 ```
-  ┌─ phone width ───────────────────────────┐
-  │  CHORE SCORE                    [ tasks ]│
-  │                                          │
-  │  ALICE                                   │
-  │  last week    M  T  W  T  F  S  S        │
-  │              [★][★][★][ ][★][★][★]       │
-  │  this week    M  T  W  T  F  S  S        │
-  │              [★][★][★][ ][·][·][·]       │
-  │                          ↑   └── disabled (future)
-  │                          today           │
-  │  ──────────────────────────────────────  │
-  │  BEN                                     │
-  │  last week   [★][ ][★][★][★][ ][★]       │
-  │  this week   [★][★][ ][·][·][·][·]       │
-  └──────────────────────────────────────────┘
+  ┌─ 390 px phone ──────────────────────────┐
+  │  Saturday 1 August                      │
+  │                                         │
+  │  ┌──────────────┐  ┌──────────────┐     │
+  │  │    ALICE     │  │     BEN      │     │  ← today
+  │  │              │  │              │     │    ~170px tall
+  │  │      ★       │  │      ○       │     │    one tap each
+  │  │              │  │              │     │    no scrolling
+  │  │    done      │  │   not yet    │     │    needed
+  │  └──────────────┘  └──────────────┘     │
+  │                                         │
+  │  ── Fix a past day ──────────────────   │
+  │                                         │
+  │  ALICE          M   T   W   T   F   S   S
+  │        last    [★] [★] [★] [ ] [★] [★] [★]
+  │        this    [★] [★] [★] [○] [·] [·] [·]
+  │                                     └── disabled
+  │  BEN            M   T   W   T   F   S   S
+  │        last    [★] [ ] [★] [★] [★] [ ] [★]
+  │        this    [★] [★] [ ] [·] [·] [·] [·]
+  │                                         │
+  │  ── Tasks ───────────────────────────   │
+  │                                         │
+  │  ALICE                                  │
+  │  ┌───────────────────────────────────┐  │
+  │  │ Piano 15 mins daily               │  │
+  │  │ Reading log signed                │  │
+  │  │ Bins out Tuesday                  │  │
+  │  └───────────────────────────────────┘  │
+  │                          [ Save ]  ← only when dirty
+  │  BEN                                    │
+  │  ┌───────────────────────────────────┐  │
+  │  │ Piano 10 mins daily               │  │
+  │  │ Spellings                         │  │
+  │  └───────────────────────────────────┘  │
+  └─────────────────────────────────────────┘
 ```
 
-The two weeks stack rather than sitting side by side, because 14 touch targets across a phone would be too small. Future squares are rendered `disabled`, which enforces the "future days cannot be marked" requirement in the UI; the server re-checks it anyway.
+Sizing at a 390 px viewport:
+
+| Element | Size | Note |
+|---|---|---|
+| Today card | ~170 × 170 | Two side by side with a gutter; unmissable |
+| Correction cell | 44 × 44 | Exactly the minimum touch target |
+| Name gutter | ~46 px | `390 − 46 = 344`, and `344 / 7 ≈ 49 px` per column |
+| Task field | full width | Auto-growing textarea |
+
+The weeks stack rather than sitting side by side — 14 targets across 390 px would be 24 px each, well under the minimum. Stacked, each week gets its own row of seven at 49 px, comfortably above it.
+
+**Two surfaces, one underlying mark.** Today appears both as a big card and as a cell in the correction grid. They write the same `day_marks` row, so the correction grid re-renders after a today toggle and vice versa. No separate state.
+
+*Why explicit save on tasks but not on day marks:* a day mark is one bit and toggling it is unambiguous, so persisting immediately is right. Task text is typed over many keystrokes, and auto-saving would publish half-typed lines to the kitchen wall. The Save button appears only when the field differs from what is stored, which also gives the parent a visible answer to "did that save?".
+
+*Alternative considered:* a separate tasks screen, reached from a button. Rejected — it is one more navigation step for something a parent does while standing up, and the whole page is small enough that scrolling to it is cheaper than routing to it.
 
 ## Risks / Trade-offs
 

@@ -45,14 +45,17 @@
 - [ ] 6.7 Set `Cache-Control: no-store` on the display response
 - [ ] 6.8 Verify the page is complete with JavaScript disabled and screenshots correctly at exactly 800×480 in a headless browser
 
-## 7. Admin page
+## 7. Admin page — single page, phone-first
 
-- [ ] 7.1 Build the stacked two-week grid for both children, sized for thumb targets on a phone
-- [ ] 7.2 Implement the toggle form action; re-check server-side that the target date is not in the future
-- [ ] 7.3 Render future squares as disabled
-- [ ] 7.4 Add `use:enhance` for optimistic toggling, reverting the square and surfacing an error when the POST fails
-- [ ] 7.5 Build the task list editor — one free-text field per child, saved independently
-- [ ] 7.6 Test that toggles survive a reload and that editing one child's tasks leaves the other untouched
+- [ ] 7.1 Implement the toggle form action, keyed by child and date; re-check server-side that the target date is not in the future and reject it if so
+- [ ] 7.2 Build the "today" section — one large card per child at the top of the page, showing today's state and toggling it in one tap, sized so both fit above the fold at a 390px viewport
+- [ ] 7.3 Build the "fix a past day" section — stacked week rows per child, 44×44 minimum touch targets, future dates rendered disabled
+- [ ] 7.4 Wire both surfaces to the same underlying day mark so a today toggle re-renders the correction grid and vice versa
+- [ ] 7.5 Add `use:enhance` for optimistic toggling, reverting the control and surfacing an error when the POST fails
+- [ ] 7.6 Build the in-place task editors — one auto-growing textarea per child, with a Save button that appears only when the field differs from the stored text
+- [ ] 7.7 Implement the task save form action, one child at a time
+- [ ] 7.8 Verify no horizontal scrolling and no control below 44×44 at 390px width
+- [ ] 7.9 Test that toggles survive a reload, that unsaved task text is not persisted, and that editing one child's tasks leaves the other untouched
 
 ## 8. Deploy and validate on the real panel
 
