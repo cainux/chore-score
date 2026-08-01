@@ -31,6 +31,15 @@ schema: spec-driven
 #       guidance:
 #         - Summarize the archive outcome before finishing
 
+context: |
+  Dates and times are always UTC. Store, transport, log, and compute in UTC —
+  never local times, offsets, or naive timestamps. Calendar dates are zone-free
+  'YYYY-MM-DD' strings and date arithmetic is done in UTC so daylight saving
+  transitions cannot change an interval's length.
+
+  The sole exception is determining which calendar date it currently is for the
+  household, which is Europe/London. That must stay confined to one function.
+
 rules:
   design:
     - Include a mermaid diagram of the data flow

@@ -61,18 +61,31 @@ CREATE TABLE task_lists (
 
 *Alternative considered:* storing trophies as their own records. Rejected — the spec requires that editing a day mark immediately changes trophy status, so deriving it is both simpler and correct by construction.
 
-### D2. Only "what is today" is timezone-aware; all other date maths is DST-free
+### D2. UTC everywhere; exactly one function knows about London
 
-The one place `Europe/London` matters is turning *now* into a calendar date:
+**Project rule: all date and time handling is UTC.** Anything stored, transported, logged, or computed is UTC. No local times, no offsets, no naive timestamps anywhere in the system.
 
 ```
-Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date())
-  → '2026-08-01'
+storage      day_marks.date         'YYYY-MM-DD'  (plain calendar date, no zone)
+             task_lists.updated_at  ISO-8601 UTC, e.g. '2026-08-01T21:14:07Z'
+arithmetic   Date.UTC(y, m, d) + n × 86_400_000
+transport    UTC only; the client never sends a local time
 ```
 
-From that point on, dates are plain `YYYY-MM-DD` strings. Week boundaries and day offsets are computed by parsing them into `Date.UTC(...)` and adding multiples of 86,400,000 ms — arithmetic in UTC, which has no DST, so "seven days after Monday" is always exactly seven days.
+Week boundaries and day offsets are computed by parsing a date string into `Date.UTC(...)` and adding whole multiples of 86,400,000 ms. UTC has no DST, so "seven days after Monday" is always exactly seven days — never 23 or 25 hours.
 
-*Why:* the classic failure here is doing date arithmetic in a timezone that has clock changes and silently getting a 23-hour or 25-hour day. Confining the timezone to a single conversion at the edge eliminates the class of bug entirely.
+There is **one** deliberate exception, isolated to a single function:
+
+```ts
+// The only timezone-aware code in the system.
+londonToday(now: Date): string   // → 'YYYY-MM-DD'
+```
+
+It answers "which calendar date is it for this family right now", because the chart is on a wall in a UK kitchen and its day must end when theirs does. During BST, London midnight is 23:00 UTC the previous day, so without this the app would disagree with the wall clock for the hour after midnight, seven months of the year.
+
+*Why isolate rather than spread:* every other function takes a `YYYY-MM-DD` string and is therefore trivially testable with no clock, no zone, and no mocking. The timezone question is asked once, at the edge, and never again.
+
+*Constraint for implementers:* `londonToday` is the only place `Europe/London` may appear. Any other use of a named timezone, or of a local-time API such as `getDate()`, `getDay()`, or `getHours()`, is a defect.
 
 *Risk:* this relies on Workers having full ICU data for named timezones. Verify early (see Risks).
 

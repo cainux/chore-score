@@ -4,12 +4,13 @@
 - [ ] 1.2 Write a throwaway route that prints `Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' })` output and run it under `wrangler dev` to confirm Workers has ICU data for named timezones
 - [ ] 1.3 If ICU is unavailable or wrong, implement the hand-rolled BST fallback (last Sunday in March to last Sunday in October) described in design.md, and note the deviation
 
-## 2. Date module
+## 2. Date module — UTC only, with one London-aware function
 
-- [ ] 2.1 Implement `londonToday(now)` returning a `YYYY-MM-DD` string for the London calendar date
-- [ ] 2.2 Implement `weekStart(date)` returning the Monday of the week containing a given date, using UTC-anchored arithmetic
+- [ ] 2.1 Implement `londonToday(now)` returning a `YYYY-MM-DD` string — the single function permitted to reference a named timezone
+- [ ] 2.2 Implement `weekStart(date)` returning the Monday of the week containing a given date, using UTC-anchored arithmetic on zone-free date strings
 - [ ] 2.3 Implement `weekDates(monday)` returning the 7 dates of a week, and `displayWindow(now)` returning the previous and current week
 - [ ] 2.4 Test 23:30 UTC in June resolves to the next London date; test Sunday belongs to the preceding Monday's week; test a week spanning each BST transition still contains exactly 7 dates
+- [ ] 2.5 Add a lint rule or test asserting that `Europe/London` appears in exactly one place, and that no local-time API (`getDate`, `getDay`, `getHours`, `getMonth`, `getFullYear`) is used anywhere in the codebase
 
 ## 3. Database
 

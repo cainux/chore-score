@@ -32,9 +32,28 @@ The system SHALL record, for each child and each calendar date, a single boolean
 - **WHEN** a day mark is set for a child and date that is already earned
 - **THEN** the stored state is unchanged and no duplicate record exists
 
+### Requirement: Times are stored and computed in UTC
+
+The system SHALL represent every instant it stores, transports, or logs in UTC. It SHALL NOT store local times, timezone offsets, or naive timestamps. Calendar dates SHALL be stored as zone-free `YYYY-MM-DD` values, and all date arithmetic SHALL be performed in UTC so that no computed interval is affected by a daylight saving transition.
+
+#### Scenario: A stored timestamp is UTC
+
+- **WHEN** any timestamp is written to storage
+- **THEN** it is expressed in UTC and carries no local offset
+
+#### Scenario: Date arithmetic is unaffected by clock changes
+
+- **WHEN** an interval of seven days is computed across a daylight saving transition
+- **THEN** the result is exactly seven calendar days, not six or eight
+
+#### Scenario: Timezone awareness is confined to the current date
+
+- **WHEN** the system needs to know anything other than which calendar date it currently is
+- **THEN** it operates purely on UTC values and zone-free date strings, with no reference to any named timezone
+
 ### Requirement: Dates are anchored to Europe/London
 
-The system SHALL interpret every calendar date, day boundary, and week boundary in the `Europe/London` timezone, regardless of the timezone of the server or the requesting client. A day SHALL begin at 00:00 London time and end at 23:59:59 London time.
+The system SHALL determine the current calendar date in the `Europe/London` timezone, regardless of the timezone of the server or the requesting client. A day SHALL begin at 00:00 London time and end at 23:59:59 London time. This is the system's only timezone-dependent behaviour; everything downstream of it operates on zone-free calendar dates.
 
 #### Scenario: Server running in UTC during British Summer Time
 
