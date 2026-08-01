@@ -192,6 +192,44 @@ stateDiagram-v2
 
 Sticking to values near the panel's four actual levels keeps the device's own quantisation from dithering solid areas into texture.
 
+### D9. Three test runtimes, because the risky assumption only exists in one of them
+
+The date module's correctness depends on the runtime having full ICU data for `Europe/London` (D2). The default test setup cannot see that dependency at all:
+
+```
+   vitest 'server'    Node          full ICU, no D1
+   vitest 'client'    Chromium      full ICU, no D1
+   playwright e2e     vite preview  = Node again, no D1
+   ─────────────────────────────────────────────────────
+   production         workerd       ICU: the open question, and D1
+```
+
+Every lane that runs on `pnpm test` has ICU and lacks D1. So a `londonToday` test can pass indefinitely while production is wrong, and no D1 query is exercised before deployment.
+
+**Decision: a third vitest project running in real workerd**, via `@cloudflare/vitest-pool-workers` and Miniflare, reading bindings from the Wrangler config. It holds exactly two categories of test:
+
+| Test | Runtime | Why |
+| --- | --- | --- |
+| `londonToday` | workers | The only function depending on ICU |
+| Anything touching D1 | workers | Real SQL, real `INSERT OR IGNORE` semantics |
+| `weekStart`, `weekDates`, `displayWindow`, square-state resolution | server (Node) | Pure string arithmetic — no runtime dependency, and workerd startup is not free |
+| Component rendering | client (Chromium) | Unchanged |
+| Layout at 800×480, both auth gates | e2e | Unchanged — see below |
+
+_Why a test rather than a one-off check:_ the alternative was a throwaway route inspected once under `wrangler dev`. That proves ICU works on the day it is run and defends nothing afterwards. Making it an assertion that pins a known BST instant means a Workers runtime change that breaks timezone handling shows up as a red test rather than as a wrong date on the kitchen wall.
+
+_Consequence for sequencing:_ the pool reads the Wrangler config to construct bindings, and D1 tests need a migration to apply. **The Wrangler config, the D1 binding, and the schema migration therefore have to exist before any workerd test can run**, which pulls them out of the database section and into the first section of `tasks.md`.
+
+_Unit-style, not `SELF.fetch()`:_ the pool can also drive the whole worker over `SELF`, but that requires pointing `main` at the built `.svelte-kit/cloudflare/_worker.js`, coupling unit tests to a build step and duplicating what Playwright already does. Data-layer modules are imported directly and handed `env.DB`.
+
+_Alternative considered:_ hand-roll the BST rule unconditionally and depend on no ICU at all. Genuinely tempting — the rule is a dozen lines, has been stable since 2002, and would make `londonToday` a pure function testable in Node like everything else. Rejected as the default because it means owning a reimplementation of something the platform does correctly, but it remains the fallback if the assertion fails, and it is the right answer if Workers' ICU support turns out to be partial rather than absent.
+
+_Alternative considered:_ an abstraction over D1 tested against `better-sqlite3` in Node. Rejected — it tests the abstraction rather than D1, and D1's actual behaviour around `INSERT OR IGNORE` and prepared statements is the thing worth verifying.
+
+_What this deliberately does not cover:_ the fixed 800×480 layout (D6) and the two auth gates (D4) stay in Playwright. Layout does not depend on the runtime, and the gates live in `hooks.server.ts`, reachable only through the `SELF` path being avoided above.
+
+_Caveat on volatility:_ this tooling is moving. At the time of writing, the only release line compatible with the installed vitest peers on `vitest ^4.1`, exposes itself as a Vite **plugin** rather than the widely documented `defineWorkersProject` / `poolOptions` form, and no longer offers the `isolatedStorage` or `singleWorker` options that most existing material assumes. Whether D1 state is isolated between tests must be established empirically before data-layer tests are written, since it decides whether they can assume a clean table. Treat published examples as probably stale and the installed package's own types as the source of truth.
+
 ## Data flow
 
 ```mermaid
@@ -307,7 +345,9 @@ _Alternative considered:_ a separate tasks screen, reached from a button. Reject
 
 **Squares are physically small.** → At 0.2 mm/px, a 42 px cell is about **8.6 mm** and a star about **6.5 mm**. That reads comfortably at arm's length and from a metre or two, but two weeks on a 7.5" panel is inherently a walk-up-to-it chart, not a read-from-the-doorway one. Mitigation: verify on the real panel before finishing the layout. If it disappoints, the fallback is dropping to a single week, which roughly doubles every dimension — but that loses the "look how good last week was" effect, which is much of the point.
 
-**Workers may lack full ICU data for named timezones.** → If `Intl.DateTimeFormat` with `timeZone: 'Europe/London'` is unavailable or wrong, every date in the system shifts. Mitigation: prove this in the very first task with a test that pins a known BST instant, before any UI is built. Fallback is a small hand-rolled BST rule (last Sunday in March to last Sunday in October), which is a dozen lines and has been stable for decades.
+**Workers may lack full ICU data for named timezones.** → If `Intl.DateTimeFormat` with `timeZone: 'Europe/London'` is unavailable or wrong, every date in the system shifts. Mitigation: a test pinning a known BST instant, running in real workerd via the `workers` vitest project (D9), written before any UI is built and kept as a permanent assertion rather than a one-off check. Fallback is a small hand-rolled BST rule (last Sunday in March to last Sunday in October), which is a dozen lines and has been stable for decades.
+
+**The workerd test harness is pre-release tooling.** → The pool depends on a Miniflare alpha and its configuration API changed shape in the release line compatible with the installed vitest. Mitigation: the dependency is transitive and pinned, so it will not drift unattended; and the harness only gates the test suite, not the deployed Worker. If it breaks irrecoverably, the fallback is the hand-rolled BST rule (which removes the ICU question entirely) plus data-layer verification against a deployed preview.
 
 **The Screenshot plugin's custom-header support is a hard dependency.** → If headers turn out not to be available on the plan in use, `/display` has no gate. Mitigation: fall back to an unguessable path segment (`/d/<random>`) which is weaker but adequate given the data is a children's chore chart.
 

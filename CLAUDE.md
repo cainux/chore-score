@@ -35,15 +35,18 @@ pnpm test:e2e -- -g "toggles a square"            # one e2e test by name
 
 ## Testing layout
 
-`vite.config.ts` defines **two vitest projects split purely by filename**, so where a test lives decides how it runs:
+`vite.config.ts` defines **vitest projects split purely by filename**, so where a test lives decides how it runs:
 
 | Pattern                | Project  | Environment                    |
 | ---------------------- | -------- | ------------------------------ |
 | `src/**/*.svelte.spec.ts` | `client` | real Chromium via Playwright, `vitest-browser-svelte` |
+| `src/**/*.workers.spec.ts` | `workers` | real workerd + D1 via Miniflare (task 1.5 adds it) |
 | `src/**/*.spec.ts` (other) | `server` | node                          |
 | `**/*.e2e.ts`          | —        | Playwright, against a real build on :4173 |
 
 `src/lib/server/**` is excluded from the client project. `expect.requireAssertions` is on, so a test with no assertion fails.
+
+The `workers` project exists because the other three lanes all have full ICU and no D1, so they cannot see the two things most likely to be wrong in production — see design.md D9. Only two kinds of test belong there: `londonToday` (the sole ICU-dependent function) and anything touching D1. Pure date arithmetic stays in `server`. Two gotchas: the `workers` project must **not** `extends: './vite.config.ts'` (it would inherit the `sveltekit()` plugin), and its filename pattern must also be added to the `server` project's `exclude`, or every workers test runs a second time in node and fails on `cloudflare:test` imports.
 
 ## Configuration notes
 
