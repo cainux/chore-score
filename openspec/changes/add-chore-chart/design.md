@@ -74,18 +74,26 @@ transport    UTC only; the client never sends a local time
 
 Week boundaries and day offsets are computed by parsing a date string into `Date.UTC(...)` and adding whole multiples of 86,400,000 ms. UTC has no DST, so "seven days after Monday" is always exactly seven days — never 23 or 25 hours.
 
-There is **one** deliberate exception, isolated to a single function:
+There is **one** deliberate exception, isolated to a single conversion:
 
 ```ts
 // The only timezone-aware code in the system.
-londonToday(now: Date): string   // → 'YYYY-MM-DD'
+londonParts(now: Date): { date: string; time: string }   // → '2026-08-02', '20:14'
+
+londonToday(now: Date): string                           // thin wrapper, returns .date
 ```
 
-It answers "which calendar date is it for this family right now", because the chart is on a wall in a UK kitchen and its day must end when theirs does. During BST, London midnight is 23:00 UTC the previous day, so without this the app would disagree with the wall clock for the hour after midnight, seven months of the year.
+`date` answers "which calendar date is it for this family right now", because the chart is on a wall in a UK kitchen and its day must end when theirs does. During BST, London midnight is 23:00 UTC the previous day, so without this the app would disagree with the wall clock for the hour after midnight, seven months of the year.
+
+`time` exists for exactly one consumer: the render stamp on the display (D10). A clock time on a kitchen wall has to be London time — rendering it in UTC would be an hour wrong for seven months of the year, and annotating it as UTC would be noise on a family chart.
+
+_Why one function returning both, rather than two functions:_ a second timezone-aware function would mean `Europe/London` appears twice, and the lint rule in tasks 2.5 would have to relax from "exactly one place" to "one module" — which then loosens again the next time something needs the zone. Deriving both values from a single `Intl.DateTimeFormat` call with `formatToParts` keeps the count at one and keeps the rule enforceable as written.
 
 _Why isolate rather than spread:_ every other function takes a `YYYY-MM-DD` string and is therefore trivially testable with no clock, no zone, and no mocking. The timezone question is asked once, at the edge, and never again.
 
-_Constraint for implementers:_ `londonToday` is the only place `Europe/London` may appear. Any other use of a named timezone, or of a local-time API such as `getDate()`, `getDay()`, or `getHours()`, is a defect.
+_Constraint for implementers:_ `londonParts` is the only place `Europe/London` may appear. Any other use of a named timezone, or of a local-time API such as `getDate()`, `getDay()`, or `getHours()`, is a defect — including inside `londonParts` itself, which reads its values from `formatToParts` rather than from any local-time accessor.
+
+_Consequence for the ICU check:_ the workerd test (D9) should assert the clock time as well as the date. A wrong BST offset shifts the time by a full hour but only shifts the date for one hour in twenty-four, so the time is the more sensitive assertion. The hand-rolled fallback still covers both: once the offset is known to be 0 or +1, date and time both follow from UTC arithmetic.
 
 _Risk:_ this relies on Workers having full ICU data for named timezones. Verify early (see Risks).
 
@@ -120,7 +128,7 @@ The display response also sets `Cache-Control: no-store`, so TRMNL never screens
 
 ### D6. Fixed 800×480 layout, expressed in absolute pixels
 
-The display page is not responsive. It is a fixed 800×480 canvas, because it has exactly one viewer.
+The display page is not responsive. It is a fixed 800×480 canvas, because it has exactly one viewer. It also assumes exactly **two** children — see D11.
 
 ```
 ┌ 800 px ──────────────────────────────────────────────────────────────┐
@@ -133,17 +141,19 @@ The display page is not responsive. It is a fixed 800×480 canvas, because it ha
 │  └──────────────────────────┘  └──────────────────────────┘          │
 │  ──────────────────────────────────────────────────────────────────  │
 │                                                                      │
-│        LAST WEEK                      THIS WEEK                      │  20px
+│        20–26 JUL                      27 JUL–2 AUG                   │  20px
 │        M  T  W  T  F  S  S            M  T  W  T  F  S  S            │  22px
 │  ┌────┬──┬──┬──┬──┬──┬──┬──┬──┐ ┌──┬──┬──┬──┬──┬──┬──┬──┐            │
-│  │Alice│★│★ │★ │  │★ │★ │★ │🏆│ │★ │★ │★ │· │· │· │· │  │            │  72px
+│  │Alice│★│★ │★ │  │★ │★ │★ │▼ │ │★ │★ │★ │· │· │· │▽ │  │            │  72px
 │  ├────┼──┼──┼──┼──┼──┼──┼──┼──┤ ├──┼──┼──┼──┼──┼──┼──┼──┤            │
-│  │Ben │★ │  │★ │★ │★ │  │★ │  │ │★ │★ │  │· │· │· │· │  │            │  72px
+│  │Ben │★ │  │★ │★ │★ │  │★ │▫ │ │★ │★ │  │· │· │· │▫ │  │            │  72px
 │  └────┴──┴──┴──┴──┴──┴──┴──┴──┘ └──┴──┴──┴──┴──┴──┴──┴──┘            │
 │   80px  └── 7 × 42px ──┘  32px       └── 7 × 42px ──┘  32px          │
+│                                        updated Sat 2 Aug 20:14       │  16px
 └──────────────────────────────────────────────────────────────────────┘
    total grid width: 80 + 294 + 32 + 20 + 294 + 32 = 752 px
-   total height used: ~370 px of 480 — slack goes to the task blocks
+   total height used: ~386 px of 480 — slack goes to the task blocks
+   trophy glyphs: ▼ solid = won   ▽ outline = still winnable   ▫ faint = lost
 ```
 
 Vertical budget out of 480 px:
@@ -156,7 +166,12 @@ Vertical budget out of 480 px:
 | Week labels            | 20                         |
 | Weekday letters        | 22                         |
 | Two child rows         | 144                        |
-| **Slack**              | **~76**                    |
+| Render stamp           | 16 (reserved, see D10)     |
+| **Slack**              | **~60**                    |
+
+The stamp's band is **reserved, not shared**. The task blocks grow into the slack, so if the stamp merely sat below them a long enough task list would push it off the canvas — losing the freshness signal at the exact moment the chart is most likely to be wrong. Absolute positioning against the bottom edge is the simplest way to make that impossible.
+
+That leaves roughly **8 bullets per child comfortably, 10 at the limit**, at 376 px wide. Note the limit is rendered height rather than typed lines: one long bullet wraps to two. Surplus bullets are clipped, and the warning that a list has passed this point lives on the admin page (D12).
 
 _Why absolute pixels:_ a fluid layout on a fixed single-viewport target only introduces ways for the chart to be subtly wrong. Hard numbers mean the layout can be verified against the real panel once and then trusted.
 
@@ -183,12 +198,12 @@ stateDiagram-v2
     end note
 ```
 
-| Element                              | Level      | Hex       |
-| ------------------------------------ | ---------- | --------- |
-| Stickers, names, task text           | black      | `#000000` |
-| Weekday letters, week labels, trophy | dark grey  | `#555555` |
-| Grid lines, future-day dots          | light grey | `#AAAAAA` |
-| Background, missed squares           | white      | `#FFFFFF` |
+| Element                                            | Level      | Hex       |
+| -------------------------------------------------- | ---------- | --------- |
+| Stickers, names, task text                         | black      | `#000000` |
+| Weekday letters, week labels, won and winnable trophies | dark grey  | `#555555` |
+| Grid lines, future-day dots, lost trophy, render stamp | light grey | `#AAAAAA` |
+| Background, missed squares                         | white      | `#FFFFFF` |
 
 Sticking to values near the panel's four actual levels keeps the device's own quantisation from dithering solid areas into texture.
 
@@ -226,9 +241,151 @@ _Alternative considered:_ hand-roll the BST rule unconditionally and depend on n
 
 _Alternative considered:_ an abstraction over D1 tested against `better-sqlite3` in Node. Rejected — it tests the abstraction rather than D1, and D1's actual behaviour around `INSERT OR IGNORE` and prepared statements is the thing worth verifying.
 
+_Also belongs in `workers`:_ the ICU assertion should pin the London **clock time** as well as the date (D2). A wrong BST offset moves the time by an hour every hour of the day, but moves the date for only one hour in twenty-four, so the time is the more sensitive probe of the same failure.
+
 _What this deliberately does not cover:_ the fixed 800×480 layout (D6) and the two auth gates (D4) stay in Playwright. Layout does not depend on the runtime, and the gates live in `hooks.server.ts`, reachable only through the `SELF` path being avoided above.
 
 _Caveat on volatility:_ this tooling is moving. At the time of writing, the only release line compatible with the installed vitest peers on `vitest ^4.1`, exposes itself as a Vite **plugin** rather than the widely documented `defineWorkersProject` / `poolOptions` form, and no longer offers the `isolatedStorage` or `singleWorker` options that most existing material assumes. Whether D1 state is isolated between tests must be established empirically before data-layer tests are written, since it decides whether they can assume a clean table. Treat published examples as probably stale and the installed package's own types as the source of truth.
+
+### D10. The display says when it was drawn, because the panel cannot say it is broken
+
+Every other screen announces its own failure — a spinner, an error, a page that will not load. E-ink does not. It holds its last image with no power, so a dead panel and a live one are pixel-identical.
+
+```
+   Worker throws a 500      ─┐
+   TRMNL screenshot fails   ─┤
+   Panel drops off wifi     ─┼──▶ panel keeps showing the last good capture
+   Battery dies             ─┘         │
+                                       ▼
+                     looks exactly like a working chart
+```
+
+That matters more here than it would elsewhere. This chart's job is to be believed without being checked — nobody walks up and interrogates it, they absorb it in passing. And the failure is unfair in a particular direction: a child who earned stickers sees a chart that does not show them.
+
+Two changes, both cheap:
+
+1. **Week labels carry dates** (`20–26 JUL`) instead of relative words (`LAST WEEK`). A relative label is true forever, which is precisely the problem. A dated one goes visibly wrong.
+2. **A render stamp** in the bottom right: `updated Sat 2 Aug 20:14`, light grey, 16 px band reserved against the bottom edge.
+
+_Why the date and not just the time:_ a screenshot cannot say "5 minutes ago" — it has no idea when it will be looked at — so the reader must do the arithmetic. They will not. Nobody glancing at a wall works out whether 47 minutes is within the poll interval. The date is the part that reads as wrong without any arithmetic at all, and the day name is what makes it instant.
+
+_Why the time as well:_ it is the only thing that catches same-day staleness, which the date cannot. This is what widens D2 from a date-only exception to date-and-time, and D2 explains how that is absorbed without adding a second timezone-aware function.
+
+_Alternative considered:_ marking today's column on the grid, so that something on the chart must move every day. Rejected as an addition rather than a replacement — it does the same job less directly and the canvas is tight. Worth revisiting at step 8.4 if the stamp reads poorly on the panel.
+
+_Open interaction:_ if TRMNL sleeps overnight to save battery, a glance at 8am legitimately shows last night's stamp. That is not a fault, but a freshness signal that looks stale every morning stops being read. Settle the refresh interval and the stamp together at step 8.5.
+
+### D11. The layout is fixed at two children; the data layer is not
+
+The schema is general — `children` has a `sort_order` — while the display is hardcoded to two 376 px task blocks and two 72 px grid rows. That mismatch is deliberate, and it is recorded here so nobody later "fixes" it in the wrong direction.
+
+Running D6's own budget, the canvas has room for one more row and no more:
+
+```
+  2 children   comfortable, ~60px spare
+  3 children   fits with almost nothing left, task blocks drop to ~250px wide
+  4 children   does not fit without shrinking the rows
+```
+
+- **The data layer stays general** because generality is free there. Rows are rows; the admin page loops over whatever it is given. There is nothing to un-build.
+- **The display layout stays fixed** because fixedness is the point of D6: a fluid layout on a single fixed viewport only adds ways for the chart to be subtly wrong.
+- **`sort_order` earns its place even at n=2** — it makes "Alice is always on the left" a stored fact rather than an accident of insertion order.
+
+_No guard is added_ for the case of a third row appearing in the table. The roster is configured out-of-band by someone with database access, who is by definition already in the code. Contrast task 6.6, which does guard against over-long task lists — that path is reachable by a parent through the UI, so it needs to survive misuse.
+
+_If a third child ever arrives_, the fix is retuning pixel numbers, which is exactly what step 8.4 does anyway with the real panel in front of it.
+
+### D12. Task text becomes bullets by one rule; the length limit is enforced on admin
+
+`task_lists.body` is free text and the display renders bullets. The conversion is defined once:
+
+```
+  split on line breaks
+  trim each line
+  drop lines that are then empty
+  strip a leading '-', '*' or '•' and the space after it
+```
+
+_Why these two rules specifically:_ both correct near-certain human behaviour. A parent who leaves a blank line between entries would otherwise get an empty bullet on a canvas with no room for one, and a parent who types `- Piano` — which is simply how people write lists — would otherwise get `• - Piano` on the kitchen wall, where nobody can fix it without walking to their phone.
+
+**It is plain text, not Markdown.** Stated explicitly because "free text rendered as bullets" is exactly the phrasing that gets someone reaching for a parser later.
+
+**The stored text is preserved verbatim.** The conversion happens at render, so reopening the editor shows what was typed rather than what was displayed.
+
+**The length limit is surfaced on the admin page, not the display.** The display is a photograph: no viewer is present, it cannot complain, and its only recourse is to clip. The admin page is the one surface where a person is standing there able to shorten the list. So the display clips as a backstop, and the warning lives where it can be acted on.
+
+The warning does not block saving — a parent may knowingly keep a longer list and accept the clipping.
+
+### D13. The trophy has three states, distinguished by fill before grey level
+
+The trophy is the only forward-looking thing on the chart, and showing it only once won made it invisible during the entire week in which it could motivate anything. It now always occupies the slot, in one of three states:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Winnable: week begins, nothing missed yet
+    Winnable --> Lost: a date before today ends unmarked
+    Winnable --> Won: all 7 dates marked
+    Lost --> Won: parent backfills every missing date
+    Won --> Lost: a mark is cleared
+
+    note right of Won
+      solid fill, #555
+    end note
+    note right of Winnable
+      hollow outline, #555
+    end note
+    note right of Lost
+      hollow outline, #AAA
+    end note
+```
+
+_Why fill carries won-versus-not:_ grey level is the first thing viewing distance destroys and the first thing 2-bit conversion mangles. A lost week reading as a won one is the worst possible misread, so that distinction rests on silhouette — solid against hollow — which survives both. Winnable versus lost may rest on level alone, because that question is asked deliberately at close range rather than absorbed in passing.
+
+_The strictly-before-today rule is load-bearing._ "Lost" means a date **before** today is unmarked. Today does not count against the week until it is over. Defining it as "any unmarked date up to and including today" would make the trophy flicker daily — lost all day, quietly revived after bedtime when neither child is looking:
+
+```
+  Wednesday morning   today unmarked → LOST     faint
+  Wednesday 8pm       parent ticks   → WINNABLE dark
+  Thursday morning    today unmarked → LOST     faint
+```
+
+Note this is deliberately **different** from how a day square resolves, where today unmarked renders as missed (D7). Same data, two questions, two rules. The natural implementation reuses the square-state resolver and gets the flicker, so the two must stay separate.
+
+_Consequences worth having:_ the trophy slot is never empty, so the row rhythm never changes and the layout has one less case. And backfilling last week's final missing day now fills a faint trophy in solid, rather than conjuring one out of an empty slot.
+
+_Trade-off accepted:_ a lost past week keeps a faint trophy rather than an empty slot, which is the closest thing on the chart to a negative marking. Chosen for consistency — nothing ever vanishes from the wall. The faintness is what keeps it from reading as a telling-off.
+
+_Cosmetic note for rollout:_ on the very first render, last week has no data, so both children show a faint trophy for a week that was never played. It clears itself within seven days. Worth knowing before step 8.6 so it is not mistaken for a fault.
+
+### D14. A control submits the date it was rendered for
+
+Day mark controls carry their own date, and the server applies that date rather than re-deriving the current one when the request arrives.
+
+Without this, the admin page has a silent bug at exactly the moment it is most used. D8 notes that roughly 95% of visits are one parent, in the evening, recording that today went fine. If that tap lands after midnight, `londonToday()` in the form action writes the wrong day:
+
+```
+    Sat evening                    │   Sun morning
+    ───────────────────────────────┼──────────────────────────
+    20:00    22:00    23:30  23:59 │ 00:01   00:20   01:00
+    today = Saturday               │   today = Sunday
+                             the cliff
+```
+
+Nothing catches it. The future-date check in task 7.1 passes, because at 00:20 Sunday is not a future date. The parent sees a star appear and has no reason to doubt it — while Saturday becomes a permanent miss and the week's trophy is gone.
+
+_Why this is the right fix rather than moving the day boundary:_ the alternative was rolling the day at 04:00 London inside `londonParts`. Cheaper, but it puts a permanent distortion into the one function the whole design bends around keeping honest, and every future reader would have to learn that "today" here carries a four-hour offset. Pinning keeps the model exact and resolves the ambiguity at the one moment a human is looking at a screen with the date written on it.
+
+_It also matches what the spec already says_ about the correction grid — that the target date is identified by the control being selected rather than by a picker. The today card was never really "today"; it was always a control for a specific date, dressed up as today.
+
+_Free property:_ a rendered date can only fall behind the current date, never run ahead of it, so a today control can never submit a future date. The server-side check still matters for the correction grid and for forged requests.
+
+**Two supports, because pinning alone goes stale.** Pinning is obviously right at five minutes of drift and obviously wrong at five days, and phones keep backgrounded tabs alive for a long time:
+
+- **The date is loud.** The day name is the today card's own heading, not small print. A parent tapping by muscle memory will not read a caption, but has a chance of registering a heading.
+- **The page re-renders when it returns** and the date no longer matches — but never while a task field holds unsaved changes, because a reload would discard typing the Save button exists to protect. Reloading has a second benefit worth keeping: it picks up whatever the other parent did.
+
+_Implementation note:_ the trigger that matters is a phone restoring a backgrounded tab, which on iOS Safari means `pageshow` with `persisted`, not `visibilitychange` alone. Without JavaScript the page simply stays as rendered, which is safe precisely because its controls carry their own dates.
 
 ## Data flow
 

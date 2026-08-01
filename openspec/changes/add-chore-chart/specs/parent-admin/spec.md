@@ -37,6 +37,52 @@ The admin page SHALL present a dedicated control per child for today's day mark,
 - **WHEN** the London date changes while the page is open and the page is subsequently reloaded
 - **THEN** the today controls act on the new date
 
+#### Scenario: The today control names its date
+
+- **WHEN** the today controls are rendered
+- **THEN** each states the day it applies to prominently enough to be read without looking for it, rather than as secondary detail
+
+### Requirement: A control submits the date it was rendered for
+
+Every day mark control SHALL submit the date it was rendered for. The server SHALL apply the submitted date and SHALL NOT substitute the current London date at the time the request arrives.
+
+This makes the page's behaviour match what the parent saw. A page rendered before midnight and used shortly after it records the day that was on screen, which is the day the parent was thinking about, rather than the one that has just begun.
+
+A rendered date can only fall behind the current date and never run ahead of it, so a control rendered as today can never submit a future date.
+
+#### Scenario: Tapping shortly after midnight
+
+- **WHEN** the page is rendered at 23:50 on a Saturday and the parent selects a today control at 00:20 on the Sunday
+- **THEN** the day mark is recorded against Saturday, the date the control was rendered for and displayed as
+
+#### Scenario: The server does not re-derive the date
+
+- **WHEN** a toggle request arrives carrying a date
+- **THEN** the server acts on that date, having checked it is within the editable window and not in the future
+
+### Requirement: The page refreshes when it returns after the date changes
+
+When the admin page becomes visible again after being left, and the current London date no longer matches the date the page was rendered for, the page SHALL re-render so that its controls act on the current date.
+
+The page SHALL NOT re-render while any task list field holds unsaved changes, because doing so would discard text the parent has typed.
+
+Re-rendering also picks up day marks made by the other parent since the page was loaded. Where JavaScript is unavailable the page SHALL simply remain as rendered, which is safe because its controls carry their own dates.
+
+#### Scenario: Returning to a page from the previous day
+
+- **WHEN** a parent returns to an admin page that was rendered yesterday and has no unsaved task edits
+- **THEN** the page re-renders and its today controls act on the current date
+
+#### Scenario: Unsaved task text is not discarded
+
+- **WHEN** a parent returns to a stale admin page on which a task field has been edited but not saved
+- **THEN** the page does not re-render and the typed text is preserved
+
+#### Scenario: Returning on the same day
+
+- **WHEN** a parent returns to an admin page rendered earlier the same day
+- **THEN** no re-render is required
+
 ### Requirement: Day marks and task lists are edited on one page
 
 The admin page SHALL expose today's marks, the correction window, and both children's task lists on a single page, requiring no navigation between them.
@@ -79,9 +125,9 @@ The admin page SHALL allow marking and clearing any date in the displayed two-we
 - **WHEN** a parent selects the control for a date nine days in the past
 - **THEN** that day mark is set, exactly as it would be for today
 
-#### Scenario: Ticking after midnight for the previous day
+#### Scenario: Ticking after midnight on a freshly loaded page
 
-- **WHEN** it is 00:30 London time and a parent wants to record the day that has just ended
+- **WHEN** it is 00:30 London time, the page has been loaded since midnight, and a parent wants to record the day that has just ended
 - **THEN** the parent selects yesterday's control in the correction window directly, and the mark is recorded against yesterday's date
 
 ### Requirement: Future days cannot be marked
@@ -135,6 +181,24 @@ The admin page SHALL let a parent edit each child's task list as free text direc
 
 - **WHEN** a parent saves an empty task list for a child
 - **THEN** that child's task list becomes empty and the display renders that child's block with no bullets
+
+### Requirement: The task editor warns when a list is too long for the display
+
+The admin page SHALL indicate when a child's task list exceeds what the display can show, at the point the parent is typing it.
+
+The display cannot report this. It is a photograph with no viewer present and no means of complaint, and its only recourse is to clip. The admin page is the one surface where a person is present and able to act, so the limit is surfaced there.
+
+The warning SHALL NOT block saving. A parent may knowingly keep a longer list, accepting that the surplus is clipped on the panel.
+
+#### Scenario: A list grows past what fits
+
+- **WHEN** a parent types a task list longer than the display can render
+- **THEN** the page indicates that the surplus will not appear on the display
+
+#### Scenario: The warning does not prevent saving
+
+- **WHEN** a parent saves a task list that exceeds the display limit
+- **THEN** the list is saved in full and the display clips it
 
 ### Requirement: The admin page is laid out for a phone
 

@@ -59,7 +59,7 @@ The `workers` project exists because the other three lanes all have full ICU and
 This rule is in `openspec/config.yaml` and is load-bearing for correctness across BST transitions:
 
 - Everything stored, transported, logged, or computed is **UTC**. Calendar dates are zone-free `'YYYY-MM-DD'` strings; date arithmetic is `Date.UTC(...)` plus whole multiples of `86_400_000`.
-- **`londonToday(now)` is the only function permitted to reference `Europe/London`.** Any other named timezone, or any local-time API (`getDate`, `getDay`, `getHours`, `getMonth`, `getFullYear`), is a defect — task 2.5 adds a lint rule or test enforcing this.
+- **`londonParts(now)` is the only function permitted to reference `Europe/London`.** It returns `{ date, time }` from a single `Intl.DateTimeFormat` `formatToParts` call; `londonToday(now)` is a thin wrapper returning the date. The time exists for one consumer only — the render stamp on the display. Any other named timezone, or any local-time API (`getDate`, `getDay`, `getHours`, `getMonth`, `getFullYear`), is a defect — task 2.5 adds a lint rule or test enforcing this, and it applies inside `londonParts` too.
 
 Every other date function takes a date string and is testable with no clock, zone, or mocking.
 
@@ -72,7 +72,7 @@ SvelteKit on Cloudflare Workers with D1. Two routes with almost nothing in commo
 
 `hooks.server.ts` holds two non-overlapping gates: a secret-header check for `/display` and an HMAC-signed cookie session for `/admin`. Both secrets come from Worker bindings and the app fails closed if either is missing.
 
-Storage is three tables (`children`, `day_marks`, `task_lists`). `day_marks` has **one row per earned day and no boolean column** — "not earned" is the absence of a row, which makes marking idempotent via `INSERT OR IGNORE` and clearing residue-free via `DELETE`. The weekly trophy is derived (`COUNT(*) = 7` over a week's dates), never stored.
+Storage is three tables (`children`, `day_marks`, `task_lists`). `day_marks` has **one row per earned day and no boolean column** — "not earned" is the absence of a row, which makes marking idempotent via `INSERT OR IGNORE` and clearing residue-free via `DELETE`. The weekly trophy is derived (`COUNT(*) = 7` over a week's dates), never stored. It renders in three states — won, still winnable, lost — where "lost" means an unmarked date **strictly before** today. That is deliberately not the same rule as day-square resolution, which counts an unmarked today as missed; building one on the other makes the trophy flicker daily (design.md D13).
 
 ## OpenSpec workflow
 

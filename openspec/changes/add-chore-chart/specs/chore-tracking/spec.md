@@ -46,19 +46,26 @@ The system SHALL represent every instant it stores, transports, or logs in UTC. 
 - **WHEN** an interval of seven days is computed across a daylight saving transition
 - **THEN** the result is exactly seven calendar days, not six or eight
 
-#### Scenario: Timezone awareness is confined to the current date
+#### Scenario: Timezone awareness is confined to one boundary
 
-- **WHEN** the system needs to know anything other than which calendar date it currently is
+- **WHEN** the system needs to know anything other than the current London date and clock time
 - **THEN** it operates purely on UTC values and zone-free date strings, with no reference to any named timezone
 
 ### Requirement: Dates are anchored to Europe/London
 
-The system SHALL determine the current calendar date in the `Europe/London` timezone, regardless of the timezone of the server or the requesting client. A day SHALL begin at 00:00 London time and end at 23:59:59 London time. This is the system's only timezone-dependent behaviour; everything downstream of it operates on zone-free calendar dates.
+The system SHALL determine the current calendar date in the `Europe/London` timezone, regardless of the timezone of the server or the requesting client. A day SHALL begin at 00:00 London time and end at 23:59:59 London time. Everything downstream of this operates on zone-free calendar dates.
+
+The system SHALL also derive the current London clock time, for the sole purpose of stating on the display when the page was rendered. The London date and the London clock time SHALL be produced by a single conversion performed at one place in the system, so that `Europe/London` is named exactly once. No other behaviour SHALL depend on a named timezone.
 
 #### Scenario: Server running in UTC during British Summer Time
 
 - **WHEN** the current instant is 23:30 UTC on 15 June, which is 00:30 London time on 16 June
-- **THEN** the system treats the current London date as 16 June
+- **THEN** the system treats the current London date as 16 June, and reports the current London clock time as 00:30
+
+#### Scenario: One conversion serves both values
+
+- **WHEN** the system resolves the current London date and the current London clock time for the same instant
+- **THEN** both are derived from a single timezone conversion, and the two values describe the same moment
 
 #### Scenario: Clock change day has the correct number of days
 
@@ -112,6 +119,39 @@ The system SHALL only report the current week as complete once all 7 of its date
 - **WHEN** it is Wednesday and a child has earned Monday, Tuesday and Wednesday
 - **THEN** the current week is reported as not complete, and Thursday through Sunday are reported as not yet occurred
 
+### Requirement: A week is winnable until a completed day is missed
+
+The system SHALL report, for each child and week, whether that week can still be completed. A week SHALL be reported as **still winnable** when every date in it that falls strictly before the current London date carries a day mark. A week SHALL be reported as **lost** when any date strictly before the current London date carries no day mark.
+
+The current date SHALL NOT count against winnability while it is still in progress. This is deliberately different from how a day square resolves for presentation, where the current date without a day mark is reported as missed rather than as not yet occurred.
+
+A week that is complete SHALL be reported as complete rather than as still winnable. A week whose dates all fall before the current date SHALL be reported as either complete or lost, and never as still winnable.
+
+#### Scenario: Today does not make the week lost
+
+- **WHEN** it is Wednesday, a child has earned Monday and Tuesday, and Wednesday has no day mark yet
+- **THEN** the current week is reported as still winnable
+
+#### Scenario: An earlier missed day makes the week lost
+
+- **WHEN** it is Wednesday and a child has no day mark for Monday
+- **THEN** the current week is reported as lost, and marking Tuesday and Wednesday does not change that
+
+#### Scenario: A fresh week starts winnable
+
+- **WHEN** the London date is a Monday and no day marks exist for the current week
+- **THEN** the current week is reported as still winnable for every child
+
+#### Scenario: A past week is never winnable
+
+- **WHEN** winnability is evaluated for a week whose dates all fall before the current London date
+- **THEN** that week is reported as complete if all 7 dates are marked and as lost otherwise, and is never reported as still winnable
+
+#### Scenario: Backfilling revives a lost week
+
+- **WHEN** a week is lost because one earlier date is unmarked, and a parent subsequently marks that date
+- **THEN** that week is no longer reported as lost
+
 ### Requirement: History is retained indefinitely
 
 The system SHALL retain all day marks indefinitely, including those for dates no longer shown on the display. Day marks older than the displayed window SHALL remain queryable.
@@ -139,3 +179,31 @@ The system SHALL store one free-text task list per child, consisting of plain-te
 
 - **WHEN** a child's task list has never been set
 - **THEN** the system reports an empty list rather than an error
+
+### Requirement: Stored task text converts to bullets by a fixed rule
+
+The system SHALL convert a stored task list into bullets by a single defined rule: split the text on line breaks, trim surrounding whitespace from each line, discard lines that are then empty, and remove a leading `-`, `*`, or `•` together with any whitespace following it. Each remaining line SHALL become exactly one bullet.
+
+The stored text SHALL be treated as plain text. The system SHALL NOT interpret it as Markdown or any other markup, and SHALL NOT apply emphasis, links, nesting, or any transformation beyond the rule above.
+
+The stored text SHALL be preserved exactly as the parent saved it. The conversion SHALL apply when the list is rendered, so that reopening the editor shows what was typed rather than what was displayed.
+
+#### Scenario: Blank lines do not become bullets
+
+- **WHEN** a stored task list contains blank lines between entries
+- **THEN** those blank lines produce no bullets, and only the non-empty lines are rendered
+
+#### Scenario: A hand-typed dash is not doubled
+
+- **WHEN** a parent saves a list whose lines begin with `- ` or `• `
+- **THEN** each line renders as a single bullet with the marker removed, not as a bullet followed by a second marker
+
+#### Scenario: Markup is not interpreted
+
+- **WHEN** a stored task list contains characters that would be meaningful in Markdown, such as `**` or `_`
+- **THEN** they are rendered literally as typed
+
+#### Scenario: Reopening the editor shows the stored text
+
+- **WHEN** a parent saves a list and later reopens the editor
+- **THEN** the field contains exactly the text that was saved, including any markers or spacing the conversion would have removed for display

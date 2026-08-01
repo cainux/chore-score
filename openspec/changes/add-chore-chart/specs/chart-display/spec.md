@@ -27,10 +27,38 @@ The display SHALL show exactly two weeks side by side: the previous week on the 
 - **WHEN** the London date crosses from Sunday into Monday
 - **THEN** the next render shows the just-finished week as the previous week and a fresh empty week as the current week, and the older week is no longer shown
 
-#### Scenario: Both weeks are labelled
+#### Scenario: Both weeks are labelled with their dates
 
 - **WHEN** the display page is rendered
-- **THEN** each week is labelled so a viewer can tell which is the previous week and which is the current one
+- **THEN** each week is labelled with the calendar dates it covers, so a viewer can tell both which week is which and which dates they are
+
+#### Scenario: Labels do not remain true when the chart is stale
+
+- **WHEN** a rendered chart is viewed some weeks after it was produced
+- **THEN** its week labels name dates that no longer match the current week, rather than remaining accurate indefinitely
+
+### Requirement: The display states when it was rendered
+
+The display SHALL show the London date and clock time at which it was rendered, positioned in the bottom right of the canvas and styled so it does not compete with the chart itself.
+
+This exists because the panel cannot signal failure. It holds its last captured image with no power, so a stale chart is visually identical to a current one. The stamp, together with dated week labels, is the only means by which a viewer can tell that what they are looking at is out of date.
+
+The space the stamp occupies SHALL be reserved, so that no amount of task list content can displace it.
+
+#### Scenario: The stamp reflects render time
+
+- **WHEN** the display page is rendered
+- **THEN** it shows the London date and clock time of that render
+
+#### Scenario: A stale capture is identifiable
+
+- **WHEN** a capture of the display is viewed a day after it was produced
+- **THEN** its stamp names the earlier date, making the staleness apparent without reference to any other source
+
+#### Scenario: The stamp survives long task lists
+
+- **WHEN** both children have task lists at the maximum length the layout permits
+- **THEN** the stamp remains visible in the bottom right and is not pushed off the canvas
 
 ### Requirement: One row per child
 
@@ -75,19 +103,49 @@ The display SHALL use one single sticker shape for every earned day. It SHALL NO
 - **WHEN** a child has earned all 7 days of a week
 - **THEN** all 7 squares show the identical sticker shape
 
-### Requirement: A completed week shows a trophy
+### Requirement: The trophy shows whether a week was won, is still winnable, or is lost
 
-The display SHALL render a trophy at the end of a child's week row when that child completed all 7 days of that week. No trophy SHALL be rendered for an incomplete week, including a current week that is still in progress.
+Every week row SHALL end with a trophy in one of three states, so that the slot is never empty and the row rhythm never changes:
+
+- **Won** — the week is complete. A solid, filled trophy in dark grey.
+- **Still winnable** — the week is in progress and no date before today is unmarked. A hollow outline trophy in dark grey.
+- **Lost** — some date before today is unmarked. The same hollow outline, in light grey.
+
+The distinction between won and not-won SHALL be carried by fill rather than by grey level, because fill survives viewing distance and 2-bit conversion where grey level does not. A lost week SHALL NOT be capable of being mistaken for a won one at a glance.
+
+The distinction between still winnable and lost MAY rest on grey level alone, because that question is asked deliberately at close range rather than absorbed in passing.
+
+Both the previous week and the current week SHALL use this treatment.
 
 #### Scenario: Previous week completed
 
 - **WHEN** a child earned all 7 days of the previous week
-- **THEN** a trophy appears at the end of that child's previous-week row
+- **THEN** a solid filled trophy appears at the end of that child's previous-week row
 
-#### Scenario: Current week in progress
+#### Scenario: Current week in progress and unbroken
 
 - **WHEN** it is Thursday and a child has earned every day so far this week
-- **THEN** no trophy appears on the current-week row
+- **THEN** a hollow dark trophy appears on the current-week row, indicating the week can still be won
+
+#### Scenario: Current week already lost
+
+- **WHEN** it is Thursday and a child has no day mark for Tuesday
+- **THEN** a hollow faint trophy appears on the current-week row
+
+#### Scenario: Today unmarked does not change the trophy
+
+- **WHEN** a child has earned every date before today this week and today has no day mark yet
+- **THEN** the trophy remains in the still-winnable state and does not change to lost
+
+#### Scenario: A lost past week keeps a faint trophy
+
+- **WHEN** a child missed one or more days of the previous week
+- **THEN** a hollow faint trophy appears at the end of that row rather than an empty slot
+
+#### Scenario: Won is distinguishable from lost at a distance
+
+- **WHEN** the rendered chart is reduced to four grey levels and viewed from across a room
+- **THEN** a won week's solid trophy is distinguishable from a lost week's hollow one
 
 ### Requirement: Each child's task bullets appear above the grid
 
@@ -115,7 +173,12 @@ The display page SHALL be laid out for an 800×480 viewport and SHALL fit within
 #### Scenario: Long task lists degrade gracefully
 
 - **WHEN** a child's task list is longer than the space allotted to it
-- **THEN** the task block is constrained so that the sticker grid remains fully visible
+- **THEN** the task block is constrained so that the sticker grid and the render stamp both remain fully visible, and the surplus bullets are clipped rather than shrunk or overflowed
+
+#### Scenario: Two children only
+
+- **WHEN** the display page is laid out
+- **THEN** it assumes exactly two children by design, and the roster size is a layout concern rather than a runtime configuration
 
 ### Requirement: Rendering is legible in 2-bit greyscale
 

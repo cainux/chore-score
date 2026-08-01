@@ -37,8 +37,10 @@ context: |
   'YYYY-MM-DD' strings and date arithmetic is done in UTC so daylight saving
   transitions cannot change an interval's length.
 
-  The sole exception is determining which calendar date it currently is for the
-  household, which is Europe/London. That must stay confined to one function.
+  The sole exception is resolving the current Europe/London calendar date and
+  clock time for the household — the date to decide which day it is, the time
+  only so the wall display can state when it was rendered. Both must come from
+  a single conversion in one function, so the zone is named exactly once.
 
 rules:
   design:
