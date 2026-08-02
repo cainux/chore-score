@@ -9,11 +9,7 @@ describe('migrated schema', () => {
 		const { results } = await env.DB.prepare(
 			"SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('children', 'day_marks', 'task_lists') ORDER BY name"
 		).all<{ name: string }>();
-		expect(results.map((r: { name: string }) => r.name)).toEqual([
-			'children',
-			'day_marks',
-			'task_lists'
-		]);
+		expect(results.map((r) => r.name)).toEqual(['children', 'day_marks', 'task_lists']);
 	});
 
 	it('seeds the roster, so a test has children to hang marks off', async () => {
