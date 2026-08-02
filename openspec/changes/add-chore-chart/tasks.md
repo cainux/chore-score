@@ -33,7 +33,7 @@ The database, its binding, and the schema migration land in section 1 because th
 
 ## 4. Domain rules
 
-- [ ] 4.1 Implement week completion as `COUNT(*) = 7` over a week's dates per child
+- [x] 4.1 Implement week completion as `COUNT(*) = 7` over a week's dates per child
 - [ ] 4.2 Implement day-square state resolution: earned / missed / not-yet, treating today as missed rather than not-yet when unmarked
 - [ ] 4.3 Implement week winnability per design.md D13: lost when any date **strictly before** today is unmarked, still winnable otherwise, complete taking precedence over both — deliberately not the same rule as 4.2, and not built on it
 - [ ] 4.4 Implement task-text-to-bullets conversion per design.md D12: split on line breaks, trim, drop empties, strip a leading `-`/`*`/`•`; plain text only, no Markdown, stored text left untouched

@@ -16,6 +16,12 @@ export default defineConfig({
 			wrangler: { configPath: './wrangler.jsonc' }
 		})
 	],
+	// Declared by hand for the same reason: `$lib` normally comes from the
+	// sveltekit() plugin, which is not here. Type-only imports of it survive
+	// without this — they are erased — but a value import does not.
+	resolve: {
+		alias: { $lib: path.join(import.meta.dirname, 'src', 'lib') }
+	},
 	test: {
 		name: 'workers',
 		expect: { requireAssertions: true },
