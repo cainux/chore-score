@@ -40,13 +40,22 @@ pnpm test:e2e -- -g "toggles a square"            # one e2e test by name
 | Pattern                | Project  | Environment                    |
 | ---------------------- | -------- | ------------------------------ |
 | `src/**/*.svelte.spec.ts` | `client` | real Chromium via Playwright, `vitest-browser-svelte` |
-| `src/**/*.workers.spec.ts` | `workers` | real workerd + D1 via Miniflare (task 1.5 adds it) |
+| `src/**/*.workers.spec.ts` | `workers` | real workerd + D1 via Miniflare, configured standalone in `vitest.workers.config.ts` |
 | `src/**/*.spec.ts` (other) | `server` | node                          |
 | `**/*.e2e.ts`          | —        | Playwright, against a real build on :4173 |
 
 `src/lib/server/**` is excluded from the client project. `expect.requireAssertions` is on, so a test with no assertion fails.
 
 The `workers` project exists because the other three lanes all have full ICU and no D1, so they cannot see the two things most likely to be wrong in production — see design.md D9. Only two kinds of test belong there: `londonToday` (the sole ICU-dependent function) and anything touching D1. Pure date arithmetic stays in `server`. Two gotchas: the `workers` project must **not** `extends: './vite.config.ts'` (it would inherit the `sveltekit()` plugin), and its filename pattern must also be added to the `server` project's `exclude`, or every workers test runs a second time in node and fails on `cloudflare:test` imports.
+
+### D1 state in the `workers` project
+
+Established empirically against `@cloudflare/vitest-pool-workers` 0.20.1, because the published material for older releases does not describe this version:
+
+- **Isolation is per file, not per test.** Each spec file starts against a completely empty database — no tables at all, not even the `d1_migrations` bookkeeping. Two tests in the same file share whatever the earlier one left behind.
+- **`reset()` from `cloudflare:test` is a wipe, not a truncate.** It drops the schema along with the rows, so a test that runs after it sees an empty `sqlite_master`.
+
+So a D1 test can assume nothing on entry, and the schema has to be put there by the test itself. The convention is therefore a `beforeEach` that calls `reset()` and then reapplies the migrations, giving every test empty tables that actually exist.
 
 ## Configuration notes
 
