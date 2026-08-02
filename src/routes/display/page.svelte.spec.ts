@@ -147,6 +147,18 @@ describe('the display page', () => {
 		expect(stamp.textContent?.trim()).toBe('updated Wed 29 Jul 20:14');
 	});
 
+	it('draws the stamp darker than the grid lines, so it survives the panel', async () => {
+		// At `#AAA` it dithered into a scatter of dots on the real panel and read
+		// as a smudge. An illegible freshness signal is no freshness signal at all
+		// (design.md D10).
+		const page = render(Page, { data: data() });
+		const grey = (colour: string) => Number(colour.match(/\d+/)![0]);
+
+		const stamp = grey(getComputedStyle(page.baseElement.querySelector('.stamp')!).color);
+		const rule = grey(getComputedStyle(page.baseElement.querySelector('.cell')!).borderTopColor);
+		expect(stamp).toBeLessThan(rule);
+	});
+
 	it('renders each child bullets under their own name', async () => {
 		const page = render(Page, { data: data() });
 		const blocks = page.baseElement.querySelectorAll('.task-block');
@@ -210,6 +222,65 @@ describe('the display page', () => {
 			(li) => li.getBoundingClientRect().bottom <= block.bottom
 		);
 		expect(visible.length).toBeLessThan(30);
+	});
+
+	it('wraps a long bullet rather than cutting it off', async () => {
+		// What the panel showed before: `Exercise 11 part 2 - hands together
+		// (thumb cr…`, which tells a child less than nothing.
+		const long = data();
+		long.rows[0].bullets = ['Exercise 11 part 2 - hands together (thumb crossover), twice through'];
+		const page = render(Page, { data: long });
+
+		const li = page.baseElement.querySelector('li')!;
+		const style = getComputedStyle(li);
+		expect(style.textOverflow).not.toBe('ellipsis');
+		expect(style.whiteSpace).not.toBe('nowrap');
+
+		// Two line boxes, and the whole sentence still present.
+		const lineHeight = Number.parseFloat(style.lineHeight);
+		expect(li.getBoundingClientRect().height).toBeGreaterThan(lineHeight * 1.5);
+		expect(li.textContent).toBe(long.rows[0].bullets[0]);
+	});
+
+	it('holds a clipped list to a whole number of lines', async () => {
+		// A list cut through the middle of a line reads as a printing fault
+		// rather than as a list that ran on.
+		const flooded = data();
+		flooded.rows[0].bullets = Array.from({ length: 20 }, (_, i) => `Task ${i}`);
+		const page = render(Page, { data: flooded });
+
+		const list = page.baseElement.querySelector('ul')!;
+		const lineHeight = Number.parseFloat(getComputedStyle(list.querySelector('li')!).lineHeight);
+		expect(list.getBoundingClientRect().height % lineHeight).toBe(0);
+	});
+
+	describe('inline emphasis', () => {
+		function bulletHtml(text: string) {
+			const one = data();
+			one.rows[0].bullets = [text];
+			return render(Page, { data: one }).baseElement.querySelector('li')!;
+		}
+
+		it('renders bold and italic runs', async () => {
+			const li = bulletHtml('play the **F#** and *hold* it');
+			const bold = li.querySelector('.bold')!;
+			const italic = li.querySelector('.italic')!;
+
+			expect(bold.textContent).toBe('F#');
+			expect(getComputedStyle(bold).fontWeight).toBe('700');
+			expect(italic.textContent).toBe('hold');
+			expect(getComputedStyle(italic).fontStyle).toBe('italic');
+		});
+
+		it('leaves no gap where a delimiter was', async () => {
+			// Whitespace between segments in the template would become whitespace
+			// on the panel, opening `**bold**text` into `bold text`.
+			expect(bulletHtml('**bold**text').textContent).toBe('boldtext');
+		});
+
+		it('renders unmatched asterisks as typed', async () => {
+			expect(bulletHtml('2 * 3 and **unclosed').textContent).toBe('2 * 3 and **unclosed');
+		});
 	});
 
 	it('renders an emoji name without disturbing anything around it', async () => {

@@ -27,6 +27,31 @@
 }
 
 /*
+ * Real italics rather than a synthesised slant.
+ *
+ * `*emphasis*` in a task bullet is drawn in these ($lib/markdown). Without them
+ * the browser shears the upright face, and a sheared stroke reduced to four grey
+ * levels is exactly the kind of detail a 2-bit panel loses — the emphasis stops
+ * reading as emphasis. 25K each, and only fetched when a bullet actually uses
+ * one, on the same rule that keeps the emoji face off most renders.
+ */
+@font-face {
+	font-family: 'ChoreText';
+	src: url('/fonts/inter-400-italic.woff2') format('woff2');
+	font-weight: 400;
+	font-style: italic;
+	font-display: block;
+}
+
+@font-face {
+	font-family: 'ChoreText';
+	src: url('/fonts/inter-700-italic.woff2') format('woff2');
+	font-weight: 700;
+	font-style: italic;
+	font-display: block;
+}
+
+/*
  * The monochrome family, not Noto Color Emoji: colour glyphs reduced to four
  * grey levels at name size become an indistinct smudge (design.md D15).
  *

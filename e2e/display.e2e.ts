@@ -52,6 +52,27 @@ test.describe('the display page makes no external requests', () => {
 		expect(emoji).not.toMatch(/https?:\/\/(?!localhost)/);
 	});
 
+	test('declares real italics, so emphasis is not a synthesised slant', async ({ page }) => {
+		// No seeded bullet uses `*emphasis*`, so nothing fetches these here. What
+		// matters is that when one does, the browser has a drawn italic to reach
+		// for — a sheared upright loses its distinction at 2 bits.
+		await page.goto('/display');
+
+		const italics = await page.evaluate(() =>
+			[...document.styleSheets]
+				.flatMap((sheet) => [...sheet.cssRules])
+				.filter((rule): rule is CSSFontFaceRule => rule instanceof CSSFontFaceRule)
+				.filter((rule) => rule.style.getPropertyValue('font-style') === 'italic')
+				.map((rule) => rule.style.getPropertyValue('src'))
+		);
+
+		expect(italics).toHaveLength(2);
+		for (const src of italics) {
+			expect(src).toContain('-italic.woff2');
+			expect(src).not.toMatch(/https?:\/\/(?!localhost)/);
+		}
+	});
+
 	test('actually applies the bundled text face rather than a fallback', async ({ page }) => {
 		await page.goto('/display');
 		await page.evaluate(() => document.fonts.ready);

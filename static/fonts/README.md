@@ -9,19 +9,31 @@ kitchen wall until the next refresh, with no way to notice from the panel.
 They are committed rather than copied at build time so that `static/` is
 complete in a fresh clone.
 
-| File                  | Source                                        | Size |
-| --------------------- | --------------------------------------------- | ---- |
-| `inter-400.woff2`     | `@fontsource/inter` — `inter-latin-400-normal` | 24K  |
-| `inter-700.woff2`     | `@fontsource/inter` — `inter-latin-700-normal` | 24K  |
-| `noto-emoji-400.woff2`| `@fontsource/noto-emoji` — `noto-emoji-emoji-400-normal` | 464K |
+| File                     | Source                                                   | Size |
+| ------------------------ | -------------------------------------------------------- | ---- |
+| `inter-400.woff2`        | `@fontsource/inter` — `inter-latin-400-normal`            | 24K  |
+| `inter-700.woff2`        | `@fontsource/inter` — `inter-latin-700-normal`            | 24K  |
+| `inter-400-italic.woff2` | `@fontsource/inter` — `inter-latin-400-italic`            | 25K  |
+| `inter-700-italic.woff2` | `@fontsource/inter` — `inter-latin-700-italic`            | 26K  |
+| `noto-emoji-400.woff2`   | `@fontsource/noto-emoji` — `noto-emoji-emoji-400-normal`  | 464K |
 
 To refresh them after a package update:
 
 ```sh
 cp node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 static/fonts/inter-400.woff2
 cp node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 static/fonts/inter-700.woff2
+cp node_modules/@fontsource/inter/files/inter-latin-400-italic.woff2 static/fonts/inter-400-italic.woff2
+cp node_modules/@fontsource/inter/files/inter-latin-700-italic.woff2 static/fonts/inter-700-italic.woff2
 cp node_modules/@fontsource/noto-emoji/files/noto-emoji-emoji-400-normal.woff2 static/fonts/noto-emoji-400.woff2
 ```
+
+## Why the italics are drawn rather than synthesised
+
+`*emphasis*` in a task bullet uses them. Left to itself the browser shears the
+upright face, and a sheared stroke reduced to four grey levels is exactly the
+detail a 2-bit panel drops — the emphasis stops reading as emphasis. They cost
+nothing on renders that do not use them, on the same "fetched only when a
+character needs it" rule as the emoji face.
 
 ## Why Noto Emoji and not Noto Color Emoji
 

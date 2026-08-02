@@ -168,10 +168,17 @@ The display SHALL render each child's current task list as a bulleted block abov
 - **WHEN** each child has a different task list
 - **THEN** each child's own bullets appear under that child's name
 
+A bullet too long for the width of its block SHALL wrap onto a further line rather than being cut off mid-word. Truncating a bullet to `(thumb cr…` conveys less than omitting it, because it reads as a fault in the chart rather than as an instruction.
+
 #### Scenario: A child with an empty task list
 
 - **WHEN** a child has no task list set
 - **THEN** that child's block renders with its heading and no bullets, and the page layout remains intact
+
+#### Scenario: A bullet longer than its column
+
+- **WHEN** a bullet is too long to fit on one line of its block
+- **THEN** it continues onto the next line with its text complete, rather than being truncated or marked with an ellipsis
 
 ### Requirement: The layout targets the TRMNL OG panel
 
@@ -185,7 +192,12 @@ The display page SHALL be laid out for an 800×480 viewport and SHALL fit within
 #### Scenario: Long task lists degrade gracefully
 
 - **WHEN** a child's task list is longer than the space allotted to it
-- **THEN** the task block is constrained so that the sticker grid and the render stamp both remain fully visible, and the surplus bullets are clipped rather than shrunk or overflowed
+- **THEN** the task block is constrained so that the sticker grid and the render stamp both remain fully visible, and the surplus is clipped rather than shrunk or overflowed
+
+#### Scenario: A clipped list ends on a whole line
+
+- **WHEN** a task list is clipped for length
+- **THEN** the last line still shown is drawn in full rather than cut through horizontally
 
 #### Scenario: Two children only
 
@@ -196,15 +208,29 @@ The display page SHALL be laid out for an 800×480 viewport and SHALL fit within
 
 The display page SHALL restrict itself to the four grey levels the panel can reproduce and SHALL avoid visual treatments that degrade on e-ink: it SHALL NOT rely on colour to convey meaning, SHALL use hairline-free borders, and SHALL use type sizes and weights that remain readable after conversion.
 
+Text SHALL NOT be set in the lightest grey the palette offers. At that level the panel dithers glyphs into a scatter of dots that reads as a smudge rather than as text. The lightest grey is for rules and dots, whose shape survives it.
+
+Emphasised text SHALL be drawn from a supplied face rather than left to be synthesised by the renderer, because a synthesised slant loses its distinction at this bit depth.
+
 #### Scenario: Converted to the panel's palette
 
 - **WHEN** the rendered page is reduced to four grey levels
 - **THEN** all text remains readable and all three day-square states remain distinguishable
 
+#### Scenario: The render stamp is legible on the panel
+
+- **WHEN** the stamp is rendered
+- **THEN** it is drawn darker than the grid lines, so that it survives conversion as readable text
+
 #### Scenario: Fonts do not depend on a third party
 
 - **WHEN** the page is rendered with no access to any external font host
 - **THEN** the intended typeface is still applied, because font assets are served by the application itself
+
+#### Scenario: Italics are supplied, not synthesised
+
+- **WHEN** a bullet contains emphasis rendered in italic
+- **THEN** the glyphs come from an italic face served by the application
 
 ### Requirement: Emoji in names render from a bundled monochrome font
 

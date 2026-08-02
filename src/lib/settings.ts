@@ -10,6 +10,12 @@
  *
  * The typeface is not a domain rule and is here only to keep the retune in one
  * place.
+ *
+ * Type sizes and grey levels are the exception: they stay in the display page's
+ * own stylesheet, next to the layout that has to absorb them. A font size here
+ * and the line height it must divide into over there is how the two drift
+ * apart. What lives here is anything a second file also has to agree with —
+ * the bullet limits below are read by the admin page as well as the display.
  */
 
 /**
@@ -27,16 +33,22 @@ export const NAME_MAX_GRAPHEMES = 16;
 /**
  * Bullets the display renders before clipping.
  *
- * design.md D6 budgets roughly 8 comfortably and 10 at the limit in a 376px
- * column. Surplus bullets are clipped rather than shrunk, and the admin page
- * warns past the comfortable count without blocking the save (D12).
+ * The hard number underneath both of these is **8 rendered lines** — the task
+ * block is 200px of 25px line boxes (design.md D6). It is lines and not bullets
+ * because bullets wrap: at 20px in a 376px column a bullet runs to about 38
+ * characters, and a real one like `Exercise 11 part 2 - hands together (thumb
+ * crossover)` takes two of the eight.
  *
- * Provisional, and the weaker of the two numbers: the true limit is rendered
- * height, since one long bullet wraps to two lines. 6.8 settles it against what
- * the panel actually shows.
+ * So `MAX` is the ceiling for a list of short bullets, and the warning fires at
+ * `COMFORTABLE` to leave room for the ones that wrap. Both were higher before
+ * the type grew; on the panel, 16px read as too small to be worth the extra
+ * lines it bought.
+ *
+ * The display clips as a backstop and the admin page warns past the comfortable
+ * count without blocking the save (D12).
  */
-export const BULLETS_COMFORTABLE = 8;
-export const BULLETS_MAX = 10;
+export const BULLETS_COMFORTABLE = 6;
+export const BULLETS_MAX = 8;
 
 /**
  * The display typeface stack.

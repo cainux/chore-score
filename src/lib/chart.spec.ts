@@ -137,8 +137,21 @@ describe('toBullets', () => {
 		expect(toBullets('* Piano\n• Reading log')).toEqual(['Piano', 'Reading log']);
 	});
 
-	it('strips the marker when it is not followed by a space', () => {
+	it('strips a dash that is not followed by a space', () => {
 		expect(toBullets('-Piano')).toEqual(['Piano']);
+	});
+
+	it('keeps an asterisk that is opening emphasis rather than a list', () => {
+		// `*Piano*` is italic ($lib/markdown). Stripping the opening asterisk
+		// would leave `Piano*` — an unmatched delimiter, so the parent gets a
+		// stray asterisk on the wall instead of the emphasis they asked for.
+		expect(toBullets('*Piano*')).toEqual(['*Piano*']);
+		expect(toBullets('*Piano* daily')).toEqual(['*Piano* daily']);
+	});
+
+	it('still strips an asterisk used as a list marker', () => {
+		// The distinction is Markdown's own: `* item` is a list, `*item*` is not.
+		expect(toBullets('*\tPiano')).toEqual(['Piano']);
 	});
 
 	it('strips only the first marker', () => {
@@ -153,13 +166,15 @@ describe('toBullets', () => {
 		expect(toBullets('Piano - 15 mins')).toEqual(['Piano - 15 mins']);
 	});
 
-	it('does not interpret Markdown', () => {
+	it('leaves emphasis for the renderer and does not strip it here', () => {
+		// This function is line structure only. What `**` means is decided when
+		// the bullet is drawn, so the text arrives there intact.
 		expect(toBullets('**Piano** and _reading_')).toEqual(['**Piano** and _reading_']);
 	});
 
 	it('leaves a doubled marker alone rather than half-eating it', () => {
-		// Stripping unconditionally would render `*Piano**`, which is neither the
-		// marker rule working nor the text rendering as typed.
+		// Stripping unconditionally would render `-- break ---`, which is neither
+		// the marker rule working nor the text rendering as typed.
 		expect(toBullets('**Piano**')).toEqual(['**Piano**']);
 		expect(toBullets('--- break ---')).toEqual(['--- break ---']);
 	});

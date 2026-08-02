@@ -211,6 +211,7 @@
 				{/if}
 
 				<label for="tasks-{child.id}">Tasks</label>
+				<p class="hint">One per line. <code>*italic*</code>, <code>**bold**</code>.</p>
 				<textarea
 					id="tasks-{child.id}"
 					name="tasks"
@@ -223,7 +224,7 @@
 					<!-- Warns, never blocks: a parent may knowingly keep a longer list
 					     and accept that the surplus is clipped on the panel (D12). -->
 					<!-- prettier-ignore -->
-					<p class="warn">{bullets} lines — the display shows about {BULLETS_COMFORTABLE}, so the rest will not appear on the chart. You can still save it.</p>
+					<p class="warn">{bullets} lines — the display fits about {BULLETS_COMFORTABLE}, and fewer when a line is long enough to wrap onto two, so the rest will not appear on the chart. You can still save it.</p>
 				{/if}
 
 				{#if form?.error && form?.childId === child.id}
@@ -429,6 +430,16 @@
 		margin: 0;
 		font-size: 0.85rem;
 		color: #8a6100;
+	}
+
+	.hint {
+		margin: -0.2rem 0 0;
+		font-size: 0.8rem;
+		color: #555555;
+	}
+
+	.hint code {
+		font-size: 0.85rem;
 	}
 
 	.unsaved {

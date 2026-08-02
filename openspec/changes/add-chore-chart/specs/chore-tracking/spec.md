@@ -219,9 +219,11 @@ The system SHALL store one free-text task list per child, consisting of plain-te
 
 The system SHALL convert a stored task list into bullets by a single defined rule: split the text on line breaks, trim surrounding whitespace from each line, discard lines that are then empty, and remove a leading `-`, `*`, or `•` together with any whitespace following it. Each remaining line SHALL become exactly one bullet.
 
-A marker that is immediately repeated SHALL NOT be treated as a marker. `**bold**` is content, not a list item, and stripping one character from it would render `*bold**` — neither the marker rule doing its job nor the text rendering as typed. A line consisting only of a marker SHALL produce no bullet.
+A marker that is immediately repeated SHALL NOT be treated as a marker. `--- break ---` is content, not a list item, and stripping one character from it would render `-- break ---` — neither the marker rule doing its job nor the text rendering as typed. A line consisting only of a marker SHALL produce no bullet.
 
-The stored text SHALL be treated as plain text. The system SHALL NOT interpret it as Markdown or any other markup, and SHALL NOT apply emphasis, links, nesting, or any transformation beyond the rule above.
+An `*` SHALL be treated as a marker only when whitespace follows it. `* Piano` is a list item; `*Piano*` is emphasis, and stripping its opening character would leave an unmatched delimiter.
+
+This requirement covers line structure only. What the text of a bullet means is a separate rule, applied when the bullet is rendered.
 
 The stored text SHALL be preserved exactly as the parent saved it. The conversion SHALL apply when the list is rendered, so that reopening the editor shows what was typed rather than what was displayed.
 
@@ -235,15 +237,55 @@ The stored text SHALL be preserved exactly as the parent saved it. The conversio
 - **WHEN** a parent saves a list whose lines begin with `- ` or `• `
 - **THEN** each line renders as a single bullet with the marker removed, not as a bullet followed by a second marker
 
-#### Scenario: Markup is not interpreted
-
-- **WHEN** a stored task list contains characters that would be meaningful in Markdown, such as `**` or `_`
-- **THEN** they are rendered literally as typed
-
 #### Scenario: A doubled marker is content
 
-- **WHEN** a line begins with a repeated marker character, such as `**Piano**` or `--- break ---`
+- **WHEN** a line begins with a repeated marker character, such as `--- break ---`
 - **THEN** nothing is stripped and the line renders exactly as typed
+
+#### Scenario: An asterisk opening emphasis is not a marker
+
+- **WHEN** a line begins `*Piano*`
+- **THEN** nothing is stripped, and the line is passed on with both delimiters intact
+
+#### Scenario: An asterisk followed by a space is a marker
+
+- **WHEN** a line begins `* Piano`
+- **THEN** the asterisk and the space are removed, exactly as for `- Piano`
+
+### Requirement: Task bullets support inline emphasis
+
+The system SHALL interpret `*italic*`, `**bold**`, and `***bold italic***` within a bullet when it is rendered, and SHALL render the emphasised text in a correspondingly styled face.
+
+The system SHALL NOT interpret any other markup. Links, headings, code, tables, block quotes, and nesting SHALL be rendered as typed. The display is a photograph on a wall: a link has nowhere to go, a heading has no document to structure, and every construct that spans lines fights a block whose height is fixed.
+
+Delimiters that are not matched into a pair SHALL be rendered as typed, so that text written with no markup in mind is never altered. Underscores SHALL NOT be treated as delimiters, because they occur inside ordinary text far more often than they are meant as markup.
+
+The stored text SHALL be unaffected: emphasis is applied when a bullet is drawn, so reopening the editor shows the delimiters as typed.
+
+#### Scenario: Emphasising the part that matters
+
+- **WHEN** a bullet reads `Homework Hopes (make sure to play the **F#**)`
+- **THEN** `F#` is rendered in bold and the surrounding text is not, with no delimiters visible
+
+#### Scenario: Arithmetic is not emphasis
+
+- **WHEN** a bullet contains lone asterisks, such as `2 * 3 and 4 * 5`
+- **THEN** every asterisk renders as typed and no part of the line is emphasised
+
+#### Scenario: An unclosed delimiter is left alone
+
+- **WHEN** a bullet contains an opening delimiter with no closing one
+- **THEN** the delimiter renders as typed
+
+#### Scenario: Underscores are literal
+
+- **WHEN** a bullet contains `_underscores_`
+- **THEN** they render as typed and no emphasis is applied
+
+#### Scenario: The editor still shows the delimiters
+
+- **WHEN** a parent saves a bullet containing `**bold**` and later reopens the editor
+- **THEN** the field contains `**bold**`, not the rendered form
 
 #### Scenario: Reopening the editor shows the stored text
 

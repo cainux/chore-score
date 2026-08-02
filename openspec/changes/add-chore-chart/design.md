@@ -173,20 +173,26 @@ The display page is not responsive. It is a fixed 800×480 canvas, because it ha
 
 Vertical budget out of 480 px:
 
-| Band                   | Height                     |
-| ---------------------- | -------------------------- |
-| Padding (top + bottom) | 24                         |
-| Task blocks            | 180 (grows into the slack) |
-| Rule + spacing         | 14                         |
-| Week labels            | 20                         |
-| Weekday letters        | 22                         |
-| Two child rows         | 144                        |
-| Render stamp           | 16 (reserved, see D10)     |
-| **Slack**              | **~60**                    |
+| Band                   | Height                                    |
+| ---------------------- | ----------------------------------------- |
+| Padding (top + bottom) | 24                                        |
+| Task blocks            | 230 — a 30px heading and 8 × 25px of list |
+| Rule + spacing         | 15                                        |
+| Week labels            | 20                                        |
+| Weekday letters        | 22                                        |
+| Two child rows         | 144                                       |
+| Render stamp           | 16 (reserved, see D10)                    |
+| **Slack**              | **~9**                                    |
+
+The task band was 180 and the bullets 16px. On the panel that read as too small — the point of the chart is that a child can see what is expected of them from across the kitchen — so the type went to 20px and the band took most of the slack that was left. It no longer "grows into the slack"; it is a fixed 230, because there is barely any slack now and the grid below it must not move.
+
+The list is exactly **8 line boxes of 25px**, not 200px of whatever fits. A whole number of them means a clipped list ends on a line that is fully drawn, rather than one sliced through the middle, which reads as a printing fault rather than as a list that ran on.
 
 The stamp's band is **reserved, not shared**. The task blocks grow into the slack, so if the stamp merely sat below them a long enough task list would push it off the canvas — losing the freshness signal at the exact moment the chart is most likely to be wrong. Absolute positioning against the bottom edge is the simplest way to make that impossible.
 
-That leaves roughly **8 bullets per child comfortably, 10 at the limit**, at 376 px wide. Note the limit is rendered height rather than typed lines: one long bullet wraps to two. Surplus bullets are clipped, and the warning that a list has passed this point lives on the admin page (D12).
+That is **8 lines per child**, at 376 px wide — not 8 bullets. A bullet wraps rather than being cut off, and at 20px a line holds about 38 characters, so a real entry like `Exercise 11 part 2 - hands together (thumb crossover)` takes two of the eight. Hence **6 bullets comfortably, 8 if every one of them is short**. Surplus is clipped, and the warning that a list has passed this point lives on the admin page (D12).
+
+_Why wrapped and not cut off:_ the first panel capture ended a bullet `(thumb cr…`, which tells a child less than nothing — worse than not showing the entry, because it looks like the chart is broken. Clipping whole lines off the bottom at least leaves everything it does show intact and readable.
 
 _Why absolute pixels:_ a fluid layout on a fixed single-viewport target only introduces ways for the chart to be subtly wrong. Hard numbers mean the layout can be verified against the real panel once and then trusted.
 
@@ -282,7 +288,9 @@ That matters more here than it would elsewhere. This chart's job is to be believ
 Two changes, both cheap:
 
 1. **The current week's label carries dates** (`27 JUL–2 AUG`) instead of relative words (`THIS WEEK`). A relative label is true forever, which is precisely the problem. A dated one goes visibly wrong.
-2. **A render stamp** in the bottom right: `updated Sat 2 Aug 20:14`, light grey, 16 px band reserved against the bottom edge.
+2. **A render stamp** in the bottom right: `updated Sat 2 Aug 20:14`, 14px `#555` in a 16 px band reserved against the bottom edge.
+
+_On the grey level:_ it began at 12px `#AAA`, which is what "does not compete with the chart" suggested on a screen. The panel disagreed — `#AAA` dithered into a scatter of dots that read as a smudge, not as text. An illegible freshness signal is no freshness signal at all, so it moved to `#555`, the same grey as the week labels. It is small and in a corner; that is enough to keep it quiet.
 
 _Why the previous week is exempt:_ it is labelled `LAST WEEK`, which is true forever — exactly what this decision argues against. Two things make it affordable on that one label. The staleness signal is not carried by it: the current week's label and the stamp both still go visibly wrong, and one of them is enough. And the question a viewer brings to a finished week is whether it was a good one, not which dates it spanned — so the dates were paying no rent there. The rule that matters is the one the spec now states directly: **at least one dated element stays on the page.** Do not spend the last one.
 
@@ -323,14 +331,30 @@ _If a third child ever arrives_, the fix is retuning pixel numbers, which is exa
   trim each line
   drop lines that are then empty
   strip a leading '-', '*' or '•' and the space after it,
-    unless that character is immediately repeated
+    unless that character is immediately repeated,
+    and unless it is a '*' with no whitespace after it
 ```
 
-_Why the repeat exception:_ found while implementing. Stripping unconditionally turns `**Piano**` into `*Piano**`, which satisfies neither this rule nor the "rendered literally as typed" requirement below, and the panel gives nobody a way to report it. A doubled marker is not how anyone writes a list item, so treating it as content costs nothing.
+_Why the repeat exception:_ found while implementing. Stripping unconditionally turns `--- break ---` into `-- break ---`, which satisfies neither this rule nor "rendered as typed", and the panel gives nobody a way to report it. A doubled marker is not how anyone writes a list item, so treating it as content costs nothing.
+
+_Why the asterisk exception:_ see the emphasis rule below. `* Piano` is a list item and `*Piano*` is italic, and whitespace is what tells them apart.
 
 _Why these two rules specifically:_ both correct near-certain human behaviour. A parent who leaves a blank line between entries would otherwise get an empty bullet on a canvas with no room for one, and a parent who types `- Piano` — which is simply how people write lists — would otherwise get `• - Piano` on the kitchen wall, where nobody can fix it without walking to their phone.
 
-**It is plain text, not Markdown.** Stated explicitly because "free text rendered as bullets" is exactly the phrasing that gets someone reaching for a parser later.
+**Inline emphasis is read; nothing else is.** `*italic*`, `**bold**`, `***both***`, and that is the whole grammar.
+
+This started as "plain text, not Markdown", written to stop someone reaching for a parser on the strength of the phrase "free text rendered as bullets". The panel answered it: task bullets turn out to be instructions with a part that matters more than the rest — _play the **F#**_ — and flat text gives a parent no way to say so on a chart read from two metres away.
+
+The line is drawn at what a photograph can honour. A link has nowhere to go. A heading has no document to structure. Tables, code, nesting and block quotes all fight a block whose height is fixed in pixels. Emphasis is the one construct that survives being a picture on a wall, so it is the one construct that is read.
+
+Two properties keep it safe to apply to text nobody wrote with markup in mind:
+
+- **Unmatched delimiters render as typed.** `2 * 3` is not the start of anything and `**` alone stays `**`. The parser only ever removes asterisks it matched in pairs.
+- **Only asterisks.** `_underscore_` is left alone, because underscores appear inside real text far more often than anyone means them as markup, and a file name silently going italic on the wall is worse than an asterisk that did not.
+
+The marker rule above has to bend once for this: an asterisk starts a list item only when whitespace follows it, so `* Piano` is a bullet and `*Piano*` is emphasis. That is Markdown's own rule, and without it stripping the opening asterisk would leave `Piano*` — a stray delimiter where the parent asked for emphasis.
+
+Emphasis is applied when a bullet is drawn, not when the text is split into lines. `toBullets` stays a statement about the first character of a line with no opinion about the rest, and the two rules can be read and tested apart.
 
 **The stored text is preserved verbatim.** The conversion happens at render, so reopening the editor shows what was typed rather than what was displayed.
 

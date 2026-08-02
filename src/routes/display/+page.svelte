@@ -3,6 +3,7 @@
 	import Star from '$lib/display/Star.svelte';
 	import Trophy from '$lib/display/Trophy.svelte';
 	import { renderStamp, WEEKDAY_INITIALS } from '$lib/display/labels';
+	import { inlineSegments } from '$lib/markdown';
 	import { DISPLAY_FONT_STACK } from '$lib/settings';
 	import type { PageData } from './$types';
 
@@ -41,7 +42,13 @@
 				<h2>{row.name}</h2>
 				<ul>
 					{#each row.bullets as bullet, i (i)}
-						<li>{bullet}</li>
+						<!--
+							The segments must sit flush against each other. Whitespace
+							between them in this template becomes whitespace on the panel,
+							which would open `**bold**text` up into `bold text`.
+						-->
+						<!-- prettier-ignore -->
+						<li>{#each inlineSegments(bullet) as part, p (p)}<span class:bold={part.bold} class:italic={part.italic}>{part.text}</span>{/each}</li>
 					{/each}
 				</ul>
 			</section>
@@ -120,9 +127,9 @@
 		display: flex;
 		gap: 16px;
 		/* Capped so an over-long list cannot displace the grid below it. Surplus
-		   bullets are already dropped server-side; this is the backstop against a
-		   long bullet wrapping to two lines. */
-		height: 180px;
+		   bullets are already dropped server-side; this is the backstop, and it
+		   matters more now that a long bullet wraps rather than being cut off. */
+		height: 230px;
 		overflow: hidden;
 	}
 
@@ -133,7 +140,8 @@
 
 	.task-block h2 {
 		margin: 0 0 6px;
-		font-size: 20px;
+		font-size: 24px;
+		line-height: 24px;
 		font-weight: 700;
 		/* A long name must not reflow the fixed column. */
 		white-space: nowrap;
@@ -142,17 +150,31 @@
 
 	.task-block ul {
 		margin: 0;
-		padding-left: 18px;
+		padding-left: 22px;
+		/* Exactly 8 lines at the line height below. A whole number of them, so a
+		   clipped list ends on a line that is fully drawn rather than on one
+		   sliced through the middle. */
+		height: 200px;
+		overflow: hidden;
 	}
 
 	.task-block li {
-		font-size: 16px;
-		line-height: 19px;
-		/* Type size is fixed: surplus is clipped rather than shrunk, because
-		   shrinking costs legibility on every bullet to fit one more. */
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		font-size: 20px;
+		line-height: 25px;
+		/* Wrapped, not cut off: a bullet ending in "(thumb cr…" tells a child
+		   less than nothing. Type size is still fixed — surplus is clipped rather
+		   than shrunk, because shrinking costs legibility on every bullet to fit
+		   one more. */
+		overflow-wrap: anywhere;
+	}
+
+	/* Inline emphasis, the only markup the display reads ($lib/markdown). */
+	.bold {
+		font-weight: 700;
+	}
+
+	.italic {
+		font-style: italic;
 	}
 
 	hr {
@@ -241,12 +263,17 @@
 
 	/* ---- Render stamp ---------------------------------------------------- */
 
+	/* `#555`, not the `#AAA` this started at. On the panel `#AAA` dithered into a
+	   scatter of dots that read as a smudge rather than as text — and an
+	   illegible freshness signal is no freshness signal at all (design.md D10).
+	   Still quiet enough not to compete: it is small, grey, and in a corner. */
 	.stamp {
 		position: absolute;
 		right: 16px;
 		bottom: 8px;
 		height: 16px;
-		font-size: 12px;
-		color: #aaaaaa;
+		font-size: 14px;
+		line-height: 16px;
+		color: #555555;
 	}
 </style>

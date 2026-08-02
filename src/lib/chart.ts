@@ -82,10 +82,10 @@ export function trophyState(
  * otherwise get `• - Piano` on the kitchen wall, where nobody can fix it
  * without walking to their phone.
  *
- * **This is plain text, not Markdown.** Stated in the code as well as the
- * design because "free text rendered as bullets" is the exact phrasing that
- * gets someone reaching for a parser. Nothing here interprets `**`, `_`, links
- * or nesting.
+ * **This function is line structure only.** Inline emphasis is a separate rule
+ * applied when a bullet is drawn — see `$lib/markdown`. Keeping them apart is
+ * what lets the marker rule below stay a statement about the first character of
+ * a line, with no opinion about what the rest of it means.
  *
  * The stored text is never modified — this runs at render, so reopening the
  * editor shows what was typed rather than what was displayed.
@@ -100,17 +100,27 @@ export function toBullets(body: string): string[] {
 }
 
 /**
- * Removes one leading list marker, unless it is immediately repeated.
+ * Removes one leading list marker, unless it is immediately repeated, and
+ * unless a leading asterisk is opening emphasis rather than a list.
  *
- * The exception is what keeps `**Piano**` literal. Stripping unconditionally
- * would leave `*Piano**` on the wall — which is neither the marker rule doing
- * its job nor the text rendering as typed, and the panel offers nobody a way to
- * complain about it. A repeated marker is not how anyone writes a list item, so
- * treating it as content costs nothing.
+ * The repeat exception is what keeps `--- break ---` literal. Stripping
+ * unconditionally would leave `-- break ---` on the wall — neither the marker
+ * rule doing its job nor the text rendering as typed, and the panel offers
+ * nobody a way to complain about it.
+ *
+ * The asterisk exception is the same problem arriving from the other side. Now
+ * that `*Piano*` means italic (`$lib/markdown`), stripping the opening asterisk
+ * would leave `Piano*` — an unmatched delimiter that then renders literally, so
+ * the parent sees a stray asterisk instead of the emphasis they asked for. An
+ * asterisk is therefore a list marker only when whitespace follows it, which is
+ * also Markdown's own rule for `* item`.
  */
 function stripMarker(line: string): string {
 	const marker = line[0];
 	if (marker !== '-' && marker !== '*' && marker !== '•') return line;
 	if (line[1] === marker) return line;
+	// A lone `*` has nothing to emphasise, so it stays a marker and the line
+	// falls away as empty.
+	if (marker === '*' && line.length > 1 && !/\s/.test(line[1])) return line;
 	return line.slice(1).replace(/^[ \t]+/, '');
 }
