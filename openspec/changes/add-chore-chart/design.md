@@ -112,7 +112,22 @@ _Alternative considered:_ a JSON API with client-side rendering on admin. Reject
 | `/display` | Secret HTTP header | Constant-time compare against a configured secret                  |
 | `/admin/*` | Shared password    | Signed, `HttpOnly` + `Secure` + `SameSite=Lax` cookie, long expiry |
 
-The gates do not overlap: an authenticated parent hitting `/display` without the header is rejected, and the header does not grant admin. Both secrets come from Worker environment bindings and the app fails closed if either is absent.
+Both secrets come from Worker environment bindings and the app fails closed if either is absent.
+
+**The gates are asymmetric, and the asymmetry is deliberate.** An admin session opens `/display` as well as `/admin`; the display header opens only `/display`.
+
+```
+   admin session  ──▶  /admin     ✓
+                  ──▶  /display   ✓   adds nothing — see below
+   display key    ──▶  /display   ✓
+                  ──▶  /admin     ✗   must never open
+```
+
+_Why the session is allowed through:_ the display page is a read-only rendering of data the session already grants full read and write access to. Refusing it protects nothing, and it costs something real — a parent cannot check what the wall actually looks like without physically walking to the panel, which makes the layout impossible to preview from a phone. The page carries no viewport meta of its own (D6), so a phone scales the fixed 800×480 canvas down to fit, which is exactly the preview wanted.
+
+_Why the reverse must stay shut:_ the display key is configured into a third party's plugin and transmitted on every poll. It is the most widely-exposed credential in the system, and it may never amount to more than "may read the chart". If it ever opened `/admin`, a value sitting in a SaaS dashboard would be a way to edit the chart.
+
+_Superseded:_ this originally read "the gates do not overlap", and was implemented and tested that way. The rule turned out to be stronger than the threat required in one direction, at a real usability cost, and was relaxed only in the direction that grants no new capability.
 
 _Why signed rather than random-token-in-a-table:_ no session table to store, expire, or clean up. The cookie carries an issued-at timestamp and an HMAC over it; verification is a signature check plus an expiry comparison.
 

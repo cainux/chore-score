@@ -134,6 +134,39 @@ test.describe('the display page fits its panel', () => {
 		await context.close();
 	});
 
+	test('lays out at 800 on a phone, so a preview shows the whole chart', async ({ browser }) => {
+		// A parent previewing from a phone must see the second week, both trophies
+		// and the render stamp. Without the viewport meta the phone lays out at
+		// its own width and crops to the left third of the canvas.
+		//
+		// This cannot affect what TRMNL captures: the screenshotter renders at an
+		// 800x480 desktop viewport, where viewport meta is ignored — which the
+		// sibling test below keeps honest.
+		const context = await browser.newContext({
+			viewport: { width: 390, height: 844 },
+			isMobile: true,
+			hasTouch: true,
+			deviceScaleFactor: 3,
+			extraHTTPHeaders: { 'x-display-key': DISPLAY_KEY }
+		});
+		const page = await context.newPage();
+		await page.goto('/display');
+		await page.evaluate(() => document.fonts.ready);
+
+		const layout = await page.evaluate(() => ({
+			width: document.documentElement.clientWidth,
+			overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+		}));
+		expect(layout).toEqual({ width: 800, overflow: 0 });
+
+		// The far edge of the canvas is present, not cropped away.
+		await expect(page.locator('.stamp')).toBeVisible();
+		expect(await page.locator('.week-label').count()).toBe(2);
+		expect(await page.locator('.trophy-col svg').count()).toBe(4);
+
+		await context.close();
+	});
+
 	test('screenshots at exactly 800x480', async ({ page }) => {
 		await page.goto('/display');
 		await page.evaluate(() => document.fonts.ready);

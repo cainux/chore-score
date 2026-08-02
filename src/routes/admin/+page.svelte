@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { longDate, shortDate, WEEKDAY_INITIALS } from '$lib/admin/dayLabels';
 	import { toBullets } from '$lib/chart';
 	import { londonToday } from '$lib/dates';
@@ -236,6 +237,17 @@
 			</form>
 		{/each}
 	</section>
+
+	<!--
+		The wall chart, as the panel sees it. It has no viewport meta of its own —
+		it is a fixed 800x480 canvas with exactly one real viewer (design.md D6) —
+		so a phone scales the whole thing down to fit, which is what makes it
+		previewable at all. Opened in a new tab so the admin page keeps its scroll
+		position and any unsaved text.
+	-->
+	<p class="preview">
+		<a href={resolve('/display')} target="_blank" rel="noopener">Preview the wall display</a>
+	</p>
 </main>
 
 <style>
@@ -429,5 +441,19 @@
 		margin: 0;
 		font-size: 0.9rem;
 		color: #b00020;
+	}
+
+	.preview {
+		margin: 2rem 0 3rem;
+		border-top: 1px solid #dddddd;
+		padding-top: 1rem;
+	}
+
+	.preview a {
+		display: inline-flex;
+		align-items: center;
+		/* The same minimum touch target as everything else on this page. */
+		min-height: 44px;
+		color: #111111;
 	}
 </style>

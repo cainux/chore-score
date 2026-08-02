@@ -155,16 +155,40 @@ test.describe('the admin gate', () => {
 // the other. If either of these ever passes, the display key — which lives in a
 // third party's plugin config and is sent on every poll — has become a way to
 // edit the chart, or a parent's session has become a way to bypass the header.
-test.describe('the gates do not overlap', () => {
-	test('an admin session does not open the display route', async ({ page, context }) => {
+// design.md D4: the gates are asymmetric on purpose. A session may open the
+// display page, because it already grants write access to everything rendered
+// there. The display key may not open admin, because it is configured into a
+// third party's plugin and sent on every poll — if that direction ever opens,
+// a widely-transmitted value has become a way to edit the chart.
+test.describe('the gates are asymmetric', () => {
+	test('an admin session opens the display route, for previewing from a phone', async ({
+		page,
+		context
+	}) => {
 		await page.goto('/admin/login');
 		await page.getByLabel('Password').fill(ADMIN_PASSWORD);
 		await page.getByRole('button', { name: 'Sign in' }).click();
 		await expect(page).toHaveURL(/\/admin$/);
 
-		// Same browser context, so the session cookie is sent with this request.
+		// Same browser context, so the session cookie is sent — and no header is.
 		const response = await context.request.get('/display');
+		expect(response.status()).toBe(200);
+		expect(await response.text()).toContain('updated');
+	});
+
+	test('still refuses the display route with neither credential', async ({ request }) => {
+		const response = await request.get('/display');
 		expect(response.status()).toBe(401);
+	});
+
+	test('keeps no-store on a session-authenticated display request', async ({ page, context }) => {
+		await page.goto('/admin/login');
+		await page.getByLabel('Password').fill(ADMIN_PASSWORD);
+		await page.getByRole('button', { name: 'Sign in' }).click();
+		await expect(page).toHaveURL(/\/admin$/);
+
+		const response = await context.request.get('/display');
+		expect(response.headers()['cache-control']).toBe('no-store');
 	});
 
 	test('the display header does not open the admin page', async ({ request }) => {

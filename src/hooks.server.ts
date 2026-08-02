@@ -31,10 +31,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	if (gate === 'display') {
-		// A parent's admin session is deliberately no help here.
-		if (!displayKeyAccepted(event.request, secrets.displayKey)) {
-			error(401, 'Not authorised.');
-		}
+		// Either credential opens this page: the header for TRMNL, which cannot
+		// log in, or an admin session so a parent can preview the wall chart from
+		// a phone. The session is the stronger of the two and already grants write
+		// access to everything rendered here, so accepting it adds nothing.
+		const allowed =
+			displayKeyAccepted(event.request, secrets.displayKey) ||
+			(await adminSessionAccepted(event.cookies, secrets.sessionSecret, new Date()));
+
+		if (!allowed) error(401, 'Not authorised.');
+
 		const response = await resolve(event);
 		// TRMNL must never screenshot a cached copy of yesterday's chart.
 		response.headers.set('Cache-Control', 'no-store');
@@ -45,7 +51,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// there would be nowhere to enter the password.
 	if (event.url.pathname === LOGIN_PATH) return resolve(event);
 
-	// Likewise, the display key is deliberately no help here.
+	// The display key is deliberately no help here, and this is the direction
+	// that must stay shut: it is configured into a third party's plugin and sent
+	// on every poll, so it may never amount to write access.
 	if (!(await adminSessionAccepted(event.cookies, secrets.sessionSecret, new Date()))) {
 		redirect(303, LOGIN_PATH);
 	}

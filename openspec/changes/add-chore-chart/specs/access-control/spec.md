@@ -57,13 +57,42 @@ The system SHALL require a secret header on requests to the display route and SH
 
 #### Scenario: Request without the header
 
-- **WHEN** a request to the display route presents no secret header, or an incorrect value
+- **WHEN** a request to the display route presents no secret header and carries no valid admin session
 - **THEN** the request is rejected and no chart data is returned
 
-#### Scenario: The admin password does not open the display route
+### Requirement: An admin session also opens the display route
+
+The system SHALL serve the display route to a request carrying a valid admin session, with or without the secret header, so that a parent can preview the wall chart from a phone rather than walking to the panel.
+
+This grants no additional access: the display route is a read-only rendering of data the session already permits reading and editing in full.
+
+The converse SHALL NOT hold — see below.
+
+#### Scenario: A parent previews the display from a phone
 
 - **WHEN** an authenticated parent requests the display route without the secret header
-- **THEN** the request is rejected, because the two mechanisms are independent
+- **THEN** the display page is returned
+
+#### Scenario: The preview is still not cached
+
+- **WHEN** the display route is served to an admin session rather than to the device
+- **THEN** the response is still marked not to be cached
+
+### Requirement: The display secret grants no write access
+
+The display header SHALL NOT grant access to any admin route or mutation, regardless of what else the request carries.
+
+The display secret is configured into a third-party screenshot service and transmitted on every poll, making it the most widely exposed credential in the system. It SHALL therefore confer nothing beyond permission to read the chart.
+
+#### Scenario: The display header does not open the admin page
+
+- **WHEN** a request to an admin route presents the correct display header but no valid session
+- **THEN** the request is treated as unauthenticated
+
+#### Scenario: The display header does not authenticate a sign-in
+
+- **WHEN** a sign-in is attempted with an incorrect password and a correct display header
+- **THEN** no session is established
 
 ### Requirement: Secrets are supplied by configuration
 

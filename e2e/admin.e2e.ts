@@ -50,6 +50,18 @@ test.describe('the page is laid out for a phone', () => {
 		}
 	});
 
+	test('links to the wall display, and it opens without the header', async ({ page, context }) => {
+		const link = page.getByRole('link', { name: 'Preview the wall display' });
+		await expect(link).toBeVisible();
+
+		const box = await link.boundingBox();
+		expect(box!.height).toBeGreaterThanOrEqual(44);
+
+		// The session alone is enough — this is the whole point of the link.
+		const response = await context.request.get(await link.getAttribute('href')!);
+		expect(response.status()).toBe(200);
+	});
+
 	test('names the date as a heading rather than as small print', async ({ page }) => {
 		// A parent tapping by muscle memory will not read a caption (design.md D14).
 		const heading = page.getByRole('heading', { level: 1 });
