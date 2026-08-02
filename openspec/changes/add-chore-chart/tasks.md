@@ -29,7 +29,7 @@ The database, its binding, and the schema migration land in section 1 because th
 - [x] 3.1 Seed the two `children` rows with names and sort order
 - [x] 3.2 Implement queries: fetch children, fetch day marks for a date range, fetch task lists
 - [x] 3.3 Implement mutations: `INSERT OR IGNORE` a mark, `DELETE` a mark, upsert a task list, update a child's name — and test in the `workers` project that marking twice is idempotent, that clearing leaves no row, and that a rename preserves the child's id, day marks and task list
-- [ ] 3.4 Import data-layer modules directly and hand them `env.DB` rather than driving the worker over `SELF.fetch()` — see design.md D9
+- [x] 3.4 Import data-layer modules directly and hand them `env.DB` rather than driving the worker over `SELF.fetch()` — see design.md D9
 
 ## 4. Domain rules
 
