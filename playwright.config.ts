@@ -10,5 +10,10 @@ export default defineConfig({
 		port: 4173,
 		reuseExistingServer: !process.env.CI
 	},
-	testMatch: '**/*.e2e.{ts,js}'
+	testMatch: '**/*.e2e.{ts,js}',
+	// One worker, because every test in this suite shares one D1 database. Run in
+	// parallel and the admin tests toggle marks out from under each other — which
+	// surfaces as a test failing on a value another file just changed, and is
+	// nearly impossible to read as anything but a real bug.
+	workers: 1
 });

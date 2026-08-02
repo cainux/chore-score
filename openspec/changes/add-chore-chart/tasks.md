@@ -16,9 +16,9 @@ The scaffold exists (SvelteKit, TypeScript, vitest, Playwright, eslint, prettier
 
 ## 2. Date module — UTC only, with one London-aware function
 
-- [ ] 2.1 Implement `londonParts(now)` returning `{ date, time }` from a single `Intl.DateTimeFormat` `formatToParts` call — the only place a named timezone may appear — with `londonToday(now)` as a thin wrapper returning the date (design.md D2)
-- [ ] 2.2 Implement `weekStart(date)` returning the Monday of the week containing a given date, using UTC-anchored arithmetic on zone-free date strings
-- [ ] 2.3 Implement `weekDates(monday)` returning the 7 dates of a week, and `displayWindow(now)` returning the previous and current week
+- [x] 2.1 Implement `londonParts(now)` returning `{ date, time }` from a single `Intl.DateTimeFormat` `formatToParts` call — the only place a named timezone may appear — with `londonToday(now)` as a thin wrapper returning the date (design.md D2)
+- [x] 2.2 Implement `weekStart(date)` returning the Monday of the week containing a given date, using UTC-anchored arithmetic on zone-free date strings
+- [x] 2.3 Implement `weekDates(monday)` returning the 7 dates of a week, and `displayWindow(now)` returning the previous and current week
 - [x] 2.4 Test 23:30 UTC in June resolves to the next London date and a 00:30 clock time — in the `workers` project, since it exercises ICU. Test that Sunday belongs to the preceding Monday's week and that a week spanning each BST transition still contains exactly 7 dates — in the `server` project, since these are pure string arithmetic with no runtime dependency
 - [x] 2.5 Add a lint rule or test asserting that `Europe/London` appears in exactly one place, and that no local-time API (`getDate`, `getDay`, `getHours`, `getMonth`, `getFullYear`) is used anywhere in the codebase — including inside `londonParts`, which reads from `formatToParts`
 
@@ -66,19 +66,19 @@ The database, its binding, and the schema migration land in section 1 because th
 
 ## 7. Admin page — single page, phone-first
 
-- [ ] 7.1 Implement the toggle form action, keyed by child and date; apply the date the control submits rather than re-deriving today server-side (design.md D14), and re-check that it is within the editable window and not in the future
-- [ ] 7.2 Build the "today" section — one large card per child at the top of the page, showing today's state and toggling it in one tap, sized so both fit above the fold at a 390px viewport; the day name is the card's own heading, not a caption
-- [ ] 7.3 Build the "fix a past day" section — stacked week rows per child, 44×44 minimum touch targets, future dates rendered disabled
-- [ ] 7.4 Wire both surfaces to the same underlying day mark so a today toggle re-renders the correction grid and vice versa
-- [ ] 7.5 Add `use:enhance` for optimistic toggling, reverting the control and surfacing an error when the POST fails
-- [ ] 7.6 Build the in-place per-child editors — a name field plus an auto-growing task textarea, with one Save button per child that appears only when either field differs from what is stored
-- [ ] 7.7 Implement the per-child save form action covering name and task list together, one child at a time; reject an empty or whitespace-only name and reject a name over the length limit, measuring with `Intl.Segmenter` at grapheme granularity rather than `.length` (design.md D15)
-- [ ] 7.8 Warn in the editor when a list exceeds what the display can show (design.md D12); the warning must not block saving
-- [ ] 7.9 Re-render on return when the rendered date no longer matches the current London date, skipping the re-render whenever a task field is dirty (design.md D14); trigger on `pageshow`/`persisted` as well as `visibilitychange`, since a restored iOS tab is the case that matters
-- [ ] 7.10 Verify no horizontal scrolling and no control below 44×44 at 390px width
-- [ ] 7.11 Test that toggles survive a reload, that unsaved task text is not persisted, and that editing one child's tasks leaves the other untouched
-- [ ] 7.12 Test that a control rendered for one date still writes that date after the London date has moved on, and that returning to a stale page with unsaved task text neither reloads nor loses the text
-- [ ] 7.13 Test renaming: an emoji name round-trips byte-for-byte, a composed emoji counts as one character against the limit, an empty name is refused, and a rename leaves the other child and all day marks untouched
+- [x] 7.1 Implement the toggle form action, keyed by child and date; apply the date the control submits rather than re-deriving today server-side (design.md D14), and re-check that it is within the editable window and not in the future
+- [x] 7.2 Build the "today" section — one large card per child at the top of the page, showing today's state and toggling it in one tap, sized so both fit above the fold at a 390px viewport; the day name is the card's own heading, not a caption
+- [x] 7.3 Build the "fix a past day" section — stacked week rows per child, 44×44 minimum touch targets, future dates rendered disabled
+- [x] 7.4 Wire both surfaces to the same underlying day mark so a today toggle re-renders the correction grid and vice versa
+- [x] 7.5 Add `use:enhance` for optimistic toggling, reverting the control and surfacing an error when the POST fails
+- [x] 7.6 Build the in-place per-child editors — a name field plus an auto-growing task textarea, with one Save button per child that appears only when either field differs from what is stored
+- [x] 7.7 Implement the per-child save form action covering name and task list together, one child at a time; reject an empty or whitespace-only name and reject a name over the length limit, measuring with `Intl.Segmenter` at grapheme granularity rather than `.length` (design.md D15)
+- [x] 7.8 Warn in the editor when a list exceeds what the display can show (design.md D12); the warning must not block saving
+- [x] 7.9 Re-render on return when the rendered date no longer matches the current London date, skipping the re-render whenever a task field is dirty (design.md D14); trigger on `pageshow`/`persisted` as well as `visibilitychange`, since a restored iOS tab is the case that matters
+- [x] 7.10 Verify no horizontal scrolling and no control below 44×44 at 390px width
+- [x] 7.11 Test that toggles survive a reload, that unsaved task text is not persisted, and that editing one child's tasks leaves the other untouched
+- [x] 7.12 Test that a control rendered for one date still writes that date after the London date has moved on, and that returning to a stale page with unsaved task text neither reloads nor loses the text
+- [x] 7.13 Test renaming: an emoji name round-trips byte-for-byte, a composed emoji counts as one character against the limit, an empty name is refused, and a rename leaves the other child and all day marks untouched
 
 ## 8. Deploy and validate on the real panel
 
