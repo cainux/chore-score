@@ -19,7 +19,7 @@ The scaffold exists (SvelteKit, TypeScript, vitest, Playwright, eslint, prettier
 - [ ] 2.1 Implement `londonParts(now)` returning `{ date, time }` from a single `Intl.DateTimeFormat` `formatToParts` call — the only place a named timezone may appear — with `londonToday(now)` as a thin wrapper returning the date (design.md D2)
 - [ ] 2.2 Implement `weekStart(date)` returning the Monday of the week containing a given date, using UTC-anchored arithmetic on zone-free date strings
 - [ ] 2.3 Implement `weekDates(monday)` returning the 7 dates of a week, and `displayWindow(now)` returning the previous and current week
-- [ ] 2.4 Test 23:30 UTC in June resolves to the next London date and a 00:30 clock time — in the `workers` project, since it exercises ICU. Test that Sunday belongs to the preceding Monday's week and that a week spanning each BST transition still contains exactly 7 dates — in the `server` project, since these are pure string arithmetic with no runtime dependency
+- [x] 2.4 Test 23:30 UTC in June resolves to the next London date and a 00:30 clock time — in the `workers` project, since it exercises ICU. Test that Sunday belongs to the preceding Monday's week and that a week spanning each BST transition still contains exactly 7 dates — in the `server` project, since these are pure string arithmetic with no runtime dependency
 - [ ] 2.5 Add a lint rule or test asserting that `Europe/London` appears in exactly one place, and that no local-time API (`getDate`, `getDay`, `getHours`, `getMonth`, `getFullYear`) is used anywhere in the codebase — including inside `londonParts`, which reads from `formatToParts`
 
 ## 3. Database
