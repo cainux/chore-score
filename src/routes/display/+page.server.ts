@@ -34,7 +34,10 @@ export const load: PageServerLoad = async ({ platform }) => {
 		fetchTaskLists(db)
 	]);
 
-	const weeks = [previous, current].map((dates) => ({ dates, label: weekLabel(dates) }));
+	// Current week first, previous second (design.md D6). The week being played
+	// is the one a passing glance is for; last week is the record it is measured
+	// against, so it reads second.
+	const weeks = [current, previous].map((dates) => ({ dates, label: weekLabel(dates) }));
 
 	return {
 		today,

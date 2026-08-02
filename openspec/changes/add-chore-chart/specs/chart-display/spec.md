@@ -18,9 +18,16 @@ The display page SHALL present information only. It SHALL contain no interactive
 - **WHEN** the display page is rendered
 - **THEN** it contains no buttons, form fields, or toggles
 
-### Requirement: The display shows two weeks, previous and current
+### Requirement: The display shows two weeks, current and previous
 
-The display SHALL show exactly two weeks side by side: the previous week on the left and the current week on the right, each running Monday to Sunday. The window SHALL be derived from the current London date on every request, so that the displayed weeks advance automatically without any manual action.
+The display SHALL show exactly two weeks side by side: the current week on the left and the previous week on the right, each running Monday to Sunday. The window SHALL be derived from the current London date on every request, so that the displayed weeks advance automatically without any manual action.
+
+The current week leads because it is the week being played, and it is what almost every glance at the chart is asking about. The previous week is the record it is measured against, so it reads second.
+
+#### Scenario: The week in progress is the one read first
+
+- **WHEN** the display page is rendered
+- **THEN** the left-hand week is the one containing the current London date, and the right-hand week is the one before it
 
 #### Scenario: Week rollover happens automatically
 
@@ -62,7 +69,7 @@ The space the stamp occupies SHALL be reserved, so that no amount of task list c
 
 ### Requirement: One row per child
 
-The display SHALL render one sticker row per child, with the children's rows adjacent so their weeks can be compared. Each row SHALL contain 14 day squares, 7 for the previous week and 7 for the current week, in Monday-to-Sunday order.
+The display SHALL render one sticker row per child, with the children's rows adjacent so their weeks can be compared. Each row SHALL contain 14 day squares, 7 for the current week and 7 for the previous week, in Monday-to-Sunday order within each week.
 
 #### Scenario: Two children produce two rows
 

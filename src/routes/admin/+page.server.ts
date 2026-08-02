@@ -40,7 +40,9 @@ export const load: PageServerLoad = async ({ platform }) => {
 			// Today's own control, kept separate from the correction grid because
 			// marking today is the overwhelmingly common reason to open this page.
 			todayEarned: marks.has(markKey(child.id, today)),
-			weeks: [previous, current].map((dates) =>
+			// Current week first, then previous — the same order the display uses,
+			// so the two surfaces agree about which week is where.
+			weeks: [current, previous].map((dates) =>
 				dates.map((date) => ({
 					date,
 					earned: marks.has(markKey(child.id, date)),

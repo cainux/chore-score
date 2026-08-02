@@ -30,15 +30,16 @@ function baseData() {
 	return {
 		today: '2026-07-29',
 		time: '20:14',
-		weeks: ['20–26 JUL', '27 JUL–2 AUG'],
+		// Current week first, previous second — the order the server hands over.
+		weeks: ['27 JUL–2 AUG', '20–26 JUL'],
 		rows: [
 			{
 				id: 'alice',
 				name: 'Alice',
 				bullets: ['Piano 15 mins daily', 'Reading log signed'],
 				weeks: [
-					week(EARNED_WEEK, 'won'),
-					week(['earned', 'earned', 'missed', 'not-yet', 'not-yet', 'not-yet', 'not-yet'], 'lost')
+					week(['earned', 'earned', 'missed', 'not-yet', 'not-yet', 'not-yet', 'not-yet'], 'lost'),
+					week(EARNED_WEEK, 'won')
 				]
 			},
 			{
@@ -46,11 +47,11 @@ function baseData() {
 				name: 'Ben',
 				bullets: ['Spellings'],
 				weeks: [
-					week(['earned', 'missed', 'earned', 'earned', 'missed', 'earned', 'earned'], 'lost'),
 					week(
 						['earned', 'earned', 'missed', 'not-yet', 'not-yet', 'not-yet', 'not-yet'],
 						'winnable'
-					)
+					),
+					week(['earned', 'missed', 'earned', 'earned', 'missed', 'earned', 'earned'], 'lost')
 				]
 			}
 		]
@@ -81,8 +82,8 @@ describe('the display page', () => {
 
 	it('draws a missed day as an empty square, with no negative marking', async () => {
 		const page = render(Page, { data: data() });
-		// Rows are week-major: [prev/Alice, prev/Ben, current/Alice, current/Ben].
-		const missed = page.baseElement.querySelectorAll('.row')[2].querySelectorAll('.cell')[2];
+		// Rows are week-major: [current/Alice, current/Ben, prev/Alice, prev/Ben].
+		const missed = page.baseElement.querySelectorAll('.row')[0].querySelectorAll('.cell')[2];
 		expect(missed.querySelector('svg')).toBeNull();
 		expect(missed.querySelector('.dot')).toBeNull();
 		expect(missed.textContent?.trim()).toBe('');
@@ -90,7 +91,7 @@ describe('the display page', () => {
 
 	it('draws a future day as a dot, distinct from a missed day', async () => {
 		const page = render(Page, { data: data() });
-		const notYet = page.baseElement.querySelectorAll('.row')[2].querySelectorAll('.cell')[3];
+		const notYet = page.baseElement.querySelectorAll('.row')[0].querySelectorAll('.cell')[3];
 		expect(notYet.querySelector('.dot')).not.toBeNull();
 		expect(notYet.querySelector('svg')).toBeNull();
 	});
@@ -107,9 +108,10 @@ describe('the display page', () => {
 		const page = render(Page, { data: data() });
 		const rows = page.baseElement.querySelectorAll('.row');
 
-		// Alice's previous week is won; Ben's previous week is lost.
-		const won = rows[0].querySelector('.trophy-col svg path')!;
-		const lost = rows[1].querySelector('.trophy-col svg path')!;
+		// Alice's previous week is won; Ben's previous week is lost. Both sit in
+		// the second block now, so they are rows 2 and 3.
+		const won = rows[2].querySelector('.trophy-col svg path')!;
+		const lost = rows[3].querySelector('.trophy-col svg path')!;
 
 		expect(won.getAttribute('fill')).toBe('#555555');
 		expect(lost.getAttribute('fill')).toBe('none');
@@ -119,8 +121,9 @@ describe('the display page', () => {
 		const page = render(Page, { data: data() });
 		const rows = page.baseElement.querySelectorAll('.row');
 
-		const lost = rows[1].querySelector('.trophy-col svg')!;
-		const winnable = rows[3].querySelector('.trophy-col svg')!;
+		// Ben's previous week is lost; his current week is still winnable.
+		const lost = rows[3].querySelector('.trophy-col svg')!;
+		const winnable = rows[1].querySelector('.trophy-col svg')!;
 
 		expect(lost.getAttribute('stroke')).toBe('#AAAAAA');
 		expect(winnable.getAttribute('stroke')).toBe('#555555');
@@ -134,7 +137,7 @@ describe('the display page', () => {
 		const labels = [...page.baseElement.querySelectorAll('.week-label')].map((l) =>
 			l.textContent?.trim()
 		);
-		expect(labels).toEqual(['20–26 JUL', '27 JUL–2 AUG']);
+		expect(labels).toEqual(['27 JUL–2 AUG', '20–26 JUL']);
 	});
 
 	it('stamps the render date and time', async () => {

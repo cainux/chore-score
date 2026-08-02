@@ -156,12 +156,12 @@ The display page is not responsive. It is a fixed 800×480 canvas, because it ha
 │  └──────────────────────────┘  └──────────────────────────┘          │
 │  ──────────────────────────────────────────────────────────────────  │
 │                                                                      │
-│        20–26 JUL                      27 JUL–2 AUG                   │  20px
+│        27 JUL–2 AUG                   20–26 JUL                      │  20px
 │        M  T  W  T  F  S  S            M  T  W  T  F  S  S            │  22px
 │  ┌────┬──┬──┬──┬──┬──┬──┬──┬──┐ ┌──┬──┬──┬──┬──┬──┬──┬──┐            │
-│  │Alice│★│★ │★ │  │★ │★ │★ │▼ │ │★ │★ │★ │· │· │· │▽ │  │            │  72px
+│  │Alice│★│★ │★ │· │· │· │▽ │  │ │★ │★ │★ │  │★ │★ │★ │▼ │            │  72px
 │  ├────┼──┼──┼──┼──┼──┼──┼──┼──┤ ├──┼──┼──┼──┼──┼──┼──┼──┤            │
-│  │Ben │★ │  │★ │★ │★ │  │★ │▫ │ │★ │★ │  │· │· │· │▫ │  │            │  72px
+│  │Ben │★ │★ │  │· │· │· │▫ │  │ │★ │  │★ │★ │★ │  │★ │▫ │            │  72px
 │  └────┴──┴──┴──┴──┴──┴──┴──┴──┘ └──┴──┴──┴──┴──┴──┴──┴──┘            │
 │   80px  └── 7 × 42px ──┘  32px       └── 7 × 42px ──┘  32px          │
 │                                        updated Sat 2 Aug 20:14       │  16px
@@ -189,6 +189,8 @@ The stamp's band is **reserved, not shared**. The task blocks grow into the slac
 That leaves roughly **8 bullets per child comfortably, 10 at the limit**, at 376 px wide. Note the limit is rendered height rather than typed lines: one long bullet wraps to two. Surplus bullets are clipped, and the warning that a list has passed this point lives on the admin page (D12).
 
 _Why absolute pixels:_ a fluid layout on a fixed single-viewport target only introduces ways for the chart to be subtly wrong. Hard numbers mean the layout can be verified against the real panel once and then trusted.
+
+_Why the current week leads:_ the chart is read left to right, and almost every glance at it is asking about the week being played — is today done, how is this week going. The previous week is the record that week is measured against, which is a second question, so it reads second. It also puts today's square near the name gutter rather than at the far right edge. The admin page's stacked weeks follow the same order, so moving between the phone and the wall does not mean re-learning which week is which.
 
 ### D7. Square states map to specific grey levels
 
@@ -535,7 +537,7 @@ Sizing at a 390 px viewport:
 | Name gutter     | ~46 px     | `390 − 46 = 344`, and `344 / 7 ≈ 49 px` per column |
 | Task field      | full width | Auto-growing textarea                              |
 
-The weeks stack rather than sitting side by side — 14 targets across 390 px would be 24 px each, well under the minimum. Stacked, each week gets its own row of seven at 49 px, comfortably above it.
+The weeks stack rather than sitting side by side — 14 targets across 390 px would be 24 px each, well under the minimum. Stacked, each week gets its own row of seven at 49 px, comfortably above it. This week is the upper row, last week the lower one: the same order the display uses (D6), read top to bottom instead of left to right.
 
 **Two surfaces, one underlying mark.** Today appears both as a big card and as a cell in the correction grid. They write the same `day_marks` row, so the correction grid re-renders after a today toggle and vice versa. No separate state.
 

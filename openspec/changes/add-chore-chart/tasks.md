@@ -64,6 +64,7 @@ The database, its binding, and the schema migration land in section 1 because th
 - [x] 6.8 Constrain the task blocks so an over-long list cannot push the grid or the stamp off screen; clip surplus bullets rather than shrinking type, and settle the bullet limit (~8 comfortable, ~10 maximum) against rendered height, not typed lines
 - [x] 6.9 Set `Cache-Control: no-store` on the display response
 - [x] 6.10 Verify the page is complete with JavaScript disabled and screenshots correctly at exactly 800×480 in a headless browser
+- [x] 6.11 Order the two weeks current-first, previous-second — left to right on the display, top to bottom on the admin page's stacked weeks — so the week being played leads on both surfaces (design.md D6, D8)
 
 ## 7. Admin page — single page, phone-first
 

@@ -11,6 +11,27 @@ const invalidateAll = vi.hoisted(() => vi.fn());
 vi.mock('$app/navigation', () => ({ invalidateAll }));
 vi.mock('$app/forms', () => ({ enhance: () => ({ destroy() {} }) }));
 
+/** The current week first, then the previous one — the order the server sends. */
+const CURRENT_WEEK = [
+	'2026-07-27',
+	'2026-07-28',
+	'2026-07-29',
+	'2026-07-30',
+	'2026-07-31',
+	'2026-08-01',
+	'2026-08-02'
+];
+const PREVIOUS_WEEK = Array.from({ length: 7 }, (_, i) => `2026-07-${20 + i}`);
+
+function week(dates: string[]) {
+	return dates.map((date) => ({
+		date,
+		earned: false,
+		state: 'missed' as const,
+		future: false
+	}));
+}
+
 function data(today = RENDERED_ON) {
 	return {
 		today,
@@ -20,20 +41,7 @@ function data(today = RENDERED_ON) {
 				name: 'Alice',
 				tasks: 'Piano\nReading',
 				todayEarned: false,
-				weeks: [
-					Array.from({ length: 7 }, (_, i) => ({
-						date: `2026-07-${20 + i}`,
-						earned: false,
-						state: 'missed' as const,
-						future: false
-					})),
-					Array.from({ length: 7 }, (_, i) => ({
-						date: `2026-07-${27 + i}`,
-						earned: false,
-						state: 'missed' as const,
-						future: false
-					}))
-				]
+				weeks: [week(CURRENT_WEEK), week(PREVIOUS_WEEK)]
 			}
 		]
 	};

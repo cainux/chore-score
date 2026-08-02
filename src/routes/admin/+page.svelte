@@ -132,7 +132,7 @@
 				</div>
 				{#each child.weeks as week, w (w)}
 					<div class="week">
-						<span class="week-name">{w === 0 ? 'last' : 'this'}</span>
+						<span class="week-name">{w === 0 ? 'this' : 'last'}</span>
 						{#each week as day (day.date)}
 							{@const earned = earnedNow(child.id, day.date, day.earned)}
 							<form

@@ -78,6 +78,54 @@ test.describe('the display page makes no external requests', () => {
 	});
 });
 
+test.describe('the current week comes first', () => {
+	/** `20–26 JUL` or `27 JUL–2 AUG` -> the two ends of the span. */
+	function ends(label: string) {
+		const [a, b] = label.split('–').map((half) => half.trim().split(' '));
+		// The month is only repeated when the week straddles two of them.
+		const toMonth = b[1];
+		return {
+			from: { day: Number(a[0]), month: a[1] ?? toMonth },
+			to: { day: Number(b[0]), month: toMonth }
+		};
+	}
+
+	/** Whole months are never spanned, so one comparison per end is enough. */
+	function covers(label: string, day: number, month: string) {
+		const { from, to } = ends(label);
+		if (month === from.month && day >= from.day) return true;
+		return month === to.month && day <= to.day;
+	}
+
+	test('labels the left-hand week with the span containing today', async ({ page }) => {
+		await page.goto('/display');
+
+		// The stamp is the page's own statement of today: `updated Sun 2 Aug 20:14`.
+		const stamp = (await page.locator('.stamp').textContent())!.trim();
+		const [, , day, month] = stamp.split(' ');
+		const today = { day: Number(day), month: month.toUpperCase() };
+
+		const labels = await page.locator('.week-label').allTextContents();
+		expect(labels).toHaveLength(2);
+		expect(covers(labels[0].trim(), today.day, today.month)).toBe(true);
+		expect(covers(labels[1].trim(), today.day, today.month)).toBe(false);
+	});
+
+	test('puts the name gutter on the current week, which is now the left one', async ({ page }) => {
+		await page.goto('/display');
+
+		const names = page.locator('.row .name');
+		expect(await names.count()).toBe(2);
+
+		// Both names sit left of every square, in the first week block.
+		const firstCell = (await page.locator('.cell').first().boundingBox())!;
+		for (let i = 0; i < 2; i++) {
+			const box = (await names.nth(i).boundingBox())!;
+			expect(box.x).toBeLessThan(firstCell.x);
+		}
+	});
+});
+
 test.describe('the display page fits its panel', () => {
 	test('fits 800x480 exactly, with nothing cut off and nothing scrollable', async ({ page }) => {
 		await page.goto('/display');

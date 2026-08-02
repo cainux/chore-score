@@ -6,7 +6,14 @@ The page parents use to run the chart: marking today, correcting past days, and 
 
 ### Requirement: The admin page covers the same two-week window
 
-The admin page SHALL provide edit access to every date in the same two-week window the display shows — previous week and current week, Monday start — for every child. The admin page SHALL NOT be required to arrange that window the way the display does; it is laid out for a phone, not for the panel.
+The admin page SHALL provide edit access to every date in the same two-week window the display shows — current week and previous week, Monday start — for every child. The admin page SHALL NOT be required to arrange that window the way the display does; it is laid out for a phone, not for the panel.
+
+It SHALL, however, present the two weeks in the same order the display does, so that a parent moving between the two surfaces is not asked to re-learn which week is which.
+
+#### Scenario: Both surfaces agree on which week comes first
+
+- **WHEN** a parent opens the admin page
+- **THEN** the week containing today is presented before the previous week, as on the display, and each week is identified as the current or the previous one
 
 #### Scenario: Same dates as the display
 

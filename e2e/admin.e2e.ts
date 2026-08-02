@@ -107,7 +107,9 @@ test.describe('marking a day', () => {
 	});
 
 	test('marks a past day nine days ago exactly as it would today', async ({ page }) => {
-		const controls = page.locator('.corrections button:not([disabled])');
+		// Last week is the second block now that the current week leads.
+		const lastWeek = page.locator('.corrections article').first().locator('.week').nth(1);
+		const controls = lastWeek.locator('button:not([disabled])');
 		const target = controls.first();
 		const before = await target.getAttribute('aria-pressed');
 
@@ -115,11 +117,26 @@ test.describe('marking a day', () => {
 		await expect(target).not.toHaveAttribute('aria-pressed', before!);
 
 		await page.reload();
-		const after = page.locator('.corrections button:not([disabled])').first();
-		await expect(after).not.toHaveAttribute('aria-pressed', before!);
+		// The locator is lazy, so this is the same control resolved afresh.
+		await expect(target).not.toHaveAttribute('aria-pressed', before!);
 
-		await after.click();
-		await expect(after).toHaveAttribute('aria-pressed', before!);
+		await target.click();
+		await expect(target).toHaveAttribute('aria-pressed', before!);
+	});
+
+	test('puts this week above last week, and today in the upper block', async ({ page }) => {
+		const weeks = page.locator('.corrections article').first().locator('.week');
+		expect(await weeks.count()).toBe(2);
+		await expect(weeks.nth(0).locator('.week-name')).toHaveText('this');
+		await expect(weeks.nth(1).locator('.week-name')).toHaveText('last');
+
+		// And the labels are not merely in that order — today really is up there.
+		const heading = await page.getByRole('heading', { level: 1 }).textContent();
+		const [weekday, day, month] = heading!.trim().split(' ');
+		const label = `Alice, ${weekday.slice(0, 3)} ${day} ${month.slice(0, 3)}`;
+
+		await expect(weeks.nth(0).getByRole('button', { name: label })).toHaveCount(1);
+		await expect(weeks.nth(1).getByRole('button', { name: label })).toHaveCount(0);
 	});
 
 	test('renders future days disabled', async ({ page }) => {
