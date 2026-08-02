@@ -20,7 +20,7 @@ test.describe('the display page makes no external requests', () => {
 		expect(external).toEqual([]);
 	});
 
-	test('serves both bundled fonts from this app', async ({ page }) => {
+	test('serves the text face from this app', async ({ page }) => {
 		const requested: string[] = [];
 		page.on('request', (request) => requested.push(request.url()));
 
@@ -28,7 +28,28 @@ test.describe('the display page makes no external requests', () => {
 		await page.evaluate(() => document.fonts.ready);
 
 		expect(requested.some((url) => url.endsWith('/fonts/inter-700.woff2'))).toBe(true);
-		expect(requested.some((url) => url.endsWith('/fonts/noto-emoji-400.woff2'))).toBe(true);
+	});
+
+	test('declares the emoji face against its own origin', async ({ page }) => {
+		// It is not fetched here — no name carries an emoji, see below — so what
+		// matters is that when one does, the glyphs come from this app rather than
+		// from whatever the screenshotting browser happens to carry.
+		await page.goto('/display');
+
+		const sources = await page.evaluate(() =>
+			[...document.styleSheets]
+				.flatMap((sheet) => [...sheet.cssRules])
+				.filter((rule): rule is CSSFontFaceRule => rule instanceof CSSFontFaceRule)
+				.map(
+					(rule) =>
+						`${rule.style.getPropertyValue('font-family')} ${rule.style.getPropertyValue('src')}`
+				)
+		);
+
+		const emoji = sources.find((s) => s.includes('ChoreEmoji'));
+		expect(emoji).toBeDefined();
+		expect(emoji).toContain('/fonts/noto-emoji-400.woff2');
+		expect(emoji).not.toMatch(/https?:\/\/(?!localhost)/);
 	});
 
 	test('actually applies the bundled text face rather than a fallback', async ({ page }) => {
@@ -43,13 +64,84 @@ test.describe('the display page makes no external requests', () => {
 		expect(loaded).toContain('ChoreText');
 	});
 
-	test('renders emoji from the bundled monochrome face', async ({ page }) => {
+	test('does not fetch the 464K emoji face when no name carries an emoji', async ({ page }) => {
+		// The mitigation D15's cost note relies on: a browser fetches a webfont
+		// only when a character needs it, so the big file costs nothing on the
+		// renders where nobody has decorated a name.
+		const requested: string[] = [];
+		page.on('request', (request) => requested.push(request.url()));
+
 		await page.goto('/display');
 		await page.evaluate(() => document.fonts.ready);
 
-		const loaded = await page.evaluate(() =>
-			[...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family)
-		);
-		expect(loaded).toContain('ChoreEmoji');
+		expect(requested.some((url) => url.includes('noto-emoji'))).toBe(false);
+	});
+});
+
+test.describe('the display page fits its panel', () => {
+	test('fits 800x480 exactly, with nothing cut off and nothing scrollable', async ({ page }) => {
+		await page.goto('/display');
+		await page.evaluate(() => document.fonts.ready);
+
+		const box = await page.locator('.panel').boundingBox();
+		expect(box?.width).toBe(800);
+		expect(box?.height).toBe(480);
+
+		const overflow = await page.evaluate(() => ({
+			x: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+			y: document.documentElement.scrollHeight - document.documentElement.clientHeight
+		}));
+		expect(overflow).toEqual({ x: 0, y: 0 });
+	});
+
+	test('keeps the grid within the canvas', async ({ page }) => {
+		await page.goto('/display');
+		await page.evaluate(() => document.fonts.ready);
+
+		const grid = await page.locator('.grid').boundingBox();
+		expect(grid!.y + grid!.height).toBeLessThanOrEqual(480);
+		expect(grid!.x + grid!.width).toBeLessThanOrEqual(800);
+	});
+
+	test('keeps the render stamp in its reserved band at the bottom right', async ({ page }) => {
+		await page.goto('/display');
+		await page.evaluate(() => document.fonts.ready);
+
+		const stamp = await page.locator('.stamp').boundingBox();
+		expect(stamp!.y + stamp!.height).toBeLessThanOrEqual(480);
+		// Bottom right, not merely on the canvas somewhere.
+		expect(stamp!.y).toBeGreaterThan(400);
+		expect(stamp!.x + stamp!.width).toBeGreaterThan(600);
+	});
+
+	test('is complete with JavaScript disabled', async ({ browser }) => {
+		// The real client runs a headless browser to take one photograph. If any
+		// of this depended on script, the capture could catch the page mid-build.
+		const context = await browser.newContext({
+			javaScriptEnabled: false,
+			viewport: { width: 800, height: 480 },
+			extraHTTPHeaders: { 'x-display-key': DISPLAY_KEY }
+		});
+		const page = await context.newPage();
+		await page.goto('/display');
+
+		await expect(page.locator('.panel')).toBeVisible();
+		expect(await page.locator('.row').count()).toBe(4);
+		expect(await page.locator('.cell').count()).toBe(28);
+		await expect(page.locator('.stamp')).toContainText('updated');
+		await expect(page.locator('.week-label').first()).not.toBeEmpty();
+
+		await context.close();
+	});
+
+	test('screenshots at exactly 800x480', async ({ page }) => {
+		await page.goto('/display');
+		await page.evaluate(() => document.fonts.ready);
+
+		const shot = await page.screenshot();
+		// PNG dimensions live at byte 16 of the IHDR chunk, big-endian.
+		const width = shot.readUInt32BE(16);
+		const height = shot.readUInt32BE(20);
+		expect({ width, height }).toEqual({ width: 800, height: 480 });
 	});
 });
