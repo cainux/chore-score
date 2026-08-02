@@ -26,7 +26,7 @@ The database, its binding, and the schema migration land in section 1 because th
 
 - [ ] 3.1 Seed the two `children` rows with names and sort order
 - [ ] 3.2 Implement queries: fetch children, fetch day marks for a date range, fetch task lists
-- [ ] 3.3 Implement mutations: `INSERT OR IGNORE` a mark, `DELETE` a mark, upsert a task list — and test in the `workers` project that marking twice is idempotent and clearing leaves no row
+- [ ] 3.3 Implement mutations: `INSERT OR IGNORE` a mark, `DELETE` a mark, upsert a task list, update a child's name — and test in the `workers` project that marking twice is idempotent, that clearing leaves no row, and that a rename preserves the child's id, day marks and task list
 - [ ] 3.4 Import data-layer modules directly and hand them `env.DB` rather than driving the worker over `SELF.fetch()` — see design.md D9
 
 ## 4. Domain rules
@@ -49,7 +49,8 @@ The database, its binding, and the schema migration land in section 1 because th
 
 ## 6. Display page
 
-- [ ] 6.1 Add the bundled `woff2` font and its `@font-face` rule; confirm no external requests are made by the page
+- [ ] 6.1 Add the bundled text `woff2` and its `@font-face` rule; confirm no external requests are made by the page
+- [ ] 6.1a Bundle **Noto Emoji** (the monochrome family, not Noto Color Emoji) as a second self-hosted `woff2` and put it in the font stack after the text face, so emoji in names render as line art rather than falling back to a system font (design.md D15); check the payload size against the cold-start concern
 - [ ] 6.2 Build the star as inline SVG, plus the trophy in solid and outline variants, at the sizes given in design.md D6
 - [ ] 6.3 Implement the fixed 800×480 layout: two task blocks above, two-week grid below, using the pixel budget in design.md D6
 - [ ] 6.4 Render day squares in the three states using the grey levels in design.md D7
@@ -67,19 +68,20 @@ The database, its binding, and the schema migration land in section 1 because th
 - [ ] 7.3 Build the "fix a past day" section — stacked week rows per child, 44×44 minimum touch targets, future dates rendered disabled
 - [ ] 7.4 Wire both surfaces to the same underlying day mark so a today toggle re-renders the correction grid and vice versa
 - [ ] 7.5 Add `use:enhance` for optimistic toggling, reverting the control and surfacing an error when the POST fails
-- [ ] 7.6 Build the in-place task editors — one auto-growing textarea per child, with a Save button that appears only when the field differs from the stored text
-- [ ] 7.7 Implement the task save form action, one child at a time
+- [ ] 7.6 Build the in-place per-child editors — a name field plus an auto-growing task textarea, with one Save button per child that appears only when either field differs from what is stored
+- [ ] 7.7 Implement the per-child save form action covering name and task list together, one child at a time; reject an empty or whitespace-only name and reject a name over the length limit, measuring with `Intl.Segmenter` at grapheme granularity rather than `.length` (design.md D15)
 - [ ] 7.8 Warn in the editor when a list exceeds what the display can show (design.md D12); the warning must not block saving
 - [ ] 7.9 Re-render on return when the rendered date no longer matches the current London date, skipping the re-render whenever a task field is dirty (design.md D14); trigger on `pageshow`/`persisted` as well as `visibilitychange`, since a restored iOS tab is the case that matters
 - [ ] 7.10 Verify no horizontal scrolling and no control below 44×44 at 390px width
 - [ ] 7.11 Test that toggles survive a reload, that unsaved task text is not persisted, and that editing one child's tasks leaves the other untouched
 - [ ] 7.12 Test that a control rendered for one date still writes that date after the London date has moved on, and that returning to a stale page with unsaved task text neither reloads nor loses the text
+- [ ] 7.13 Test renaming: an emoji name round-trips byte-for-byte, a composed emoji counts as one character against the limit, an empty name is refused, and a rename leaves the other child and all day marks untouched
 
 ## 8. Deploy and validate on the real panel
 
 - [ ] 8.1 Deploy to a Workers preview URL with secrets set and the migration applied
 - [ ] 8.2 Point the TRMNL Screenshot plugin at the preview URL with the custom header; confirm it captures successfully
-- [ ] 8.3 Check the capture on the physical panel: are the squares legible at kitchen distance, does the font survive 2-bit conversion, are the three square states distinguishable, is a solid trophy unmistakable from a hollow one across the room, and does the faint trophy stay clear of the `#AAA` grid lines around it
-- [ ] 8.4 Adjust type sizes, weights, and grey levels based on what the panel actually shows; decide the typeface open question here, whether the won trophy needs to be black rather than `#555`, and whether the render stamp is legible at `#AAA` or needs `#555`
+- [ ] 8.3 Check the capture on the physical panel: are the squares legible at kitchen distance, does the font survive 2-bit conversion, are the three square states distinguishable, is a solid trophy unmistakable from a hollow one across the room, does the faint trophy stay clear of the `#AAA` grid lines around it, and does a monochrome emoji in a name read as a picture at name size
+- [ ] 8.4 Adjust type sizes, weights, and grey levels based on what the panel actually shows; decide the typeface open question here, whether the won trophy needs to be black rather than `#555`, whether the render stamp is legible at `#AAA` or needs `#555`, and settle the name length limit against real emoji names
 - [ ] 8.5 Promote to the production URL and set the TRMNL refresh interval — settle it together with the render stamp, since an overnight sleep makes a healthy chart show last night's time every morning (design.md D10)
 - [ ] 8.6 Enter real task lists for both children and confirm a full round trip: toggle a square on the phone, see it appear on the wall — expect both children to show a faint trophy for last week on the first render, since it has no data

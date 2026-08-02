@@ -182,6 +182,36 @@ The admin page SHALL let a parent edit each child's task list as free text direc
 - **WHEN** a parent saves an empty task list for a child
 - **THEN** that child's task list becomes empty and the display renders that child's block with no bullets
 
+### Requirement: Child names are editable alongside their task lists
+
+The admin page SHALL let a parent edit each child's display name in place, in the same per-child block as that child's task list, saved by the same explicit save action.
+
+Names SHALL follow the same rule as task text: an edit takes effect only on save, so a partially typed name is never published to the display. The page SHALL indicate when a name has unsaved changes.
+
+Name editing SHALL sit in the lower part of the page with the task editors rather than near the today controls, because renaming is occasional and marking today is not.
+
+The field SHALL accept emoji by ordinary text entry, using the device keyboard, with no dedicated picker.
+
+#### Scenario: Renaming a child
+
+- **WHEN** a parent edits one child's name and saves
+- **THEN** that child's name changes everywhere it appears, and the other child's name is untouched
+
+#### Scenario: An unsaved name is not published
+
+- **WHEN** a parent has typed into a name field but has not saved
+- **THEN** the stored name is unchanged and the display continues to show the previous name
+
+#### Scenario: Name and tasks save together
+
+- **WHEN** a parent changes both a child's name and that child's task list and saves once
+- **THEN** both changes are persisted together for that child
+
+#### Scenario: An empty name is refused
+
+- **WHEN** a parent saves a name that is empty or only whitespace
+- **THEN** the name is not saved and the previous name is retained, because a nameless row on the chart cannot be identified
+
 ### Requirement: The task editor warns when a list is too long for the display
 
 The admin page SHALL indicate when a child's task list exceeds what the display can show, at the point the parent is typing it.

@@ -387,6 +387,33 @@ _Free property:_ a rendered date can only fall behind the current date, never ru
 
 _Implementation note:_ the trigger that matters is a phone restoring a backgrounded tab, which on iOS Safari means `pageshow` with `persisted`, not `visibilitychange` alone. Without JavaScript the page simply stays as rendered, which is safe precisely because its controls carry their own dates.
 
+### D15. Names are editable, and emoji come from a bundled monochrome font
+
+Parents want to decorate a child's name for a birthday or a holiday, so the display name is editable. Roster membership and order are not — a child is still added or removed only by someone with database access (D11), and the identifier never changes, so day marks and task lists stay attached across a rename.
+
+Editing lives with the task editors in the lower part of the page, sharing one save per child. Renaming is occasional; marking today is not, and the top of the page belongs to the common action (D8).
+
+**The emoji part is the awkward part.** Emoji are colour glyphs that normally come from a system font, and both of those facts collide with D5:
+
+```
+   colour glyph  ──▶  reduced to 4 grey levels at ~18px  ──▶  dark smudge
+   system font   ──▶  absent from the screenshotting browser  ──▶  □ □ □
+```
+
+The second is the serious one. D5 bundles the typeface precisely so that nothing on the page depends on a resource the screenshot could lose, and reaching for a system emoji font puts that dependency straight back — with tofu boxes on the kitchen wall as the failure mode, until someone notices and nobody can fix it from the panel.
+
+**Decision: bundle Noto Emoji, the monochrome family** — not Noto Color Emoji. It is single-colour outline artwork, which is what a 2-bit panel can actually reproduce, and self-hosting it keeps D5 intact.
+
+_Cost:_ the font is large and cannot be subset ahead of time, because the names are arbitrary. It is same-origin and cacheable, so it does not risk the screenshot the way a third-party fetch would, but it is worth watching against the cold-start concern in the Context section. If it proves too heavy, subsetting to a chosen range of common emoji is the obvious retreat — at the price of tofu for anything outside it.
+
+_Alternative considered:_ strip emoji at the display and let them exist only on admin. Rejected — the whole point is decorating the name on the wall. Admin is not where anyone looks.
+
+_Alternative considered:_ let emoji fall back to the system font and see what happens. Rejected as a silent, environment-dependent failure on the one surface with no way to report a problem.
+
+**Length is constrained, and measured in grapheme clusters.** The grid's name gutter is a fixed 80 px (D6) and the task block headings sit in fixed 376 px columns, so an over-long name would break the layout rather than reflow it. Counting must be by user-perceived character: a single emoji can be several code points, and JavaScript's `.length` counts UTF-16 units, so a family emoji would score 8 against a limit meant to count 1. Use `Intl.Segmenter` with `granularity: 'grapheme'`.
+
+_Where the limit is enforced:_ on save, in the admin form action, which rejects rather than truncates. Truncating a name silently is worse than refusing it — a half-cut emoji is a replacement character on the wall.
+
 ## Data flow
 
 ```mermaid

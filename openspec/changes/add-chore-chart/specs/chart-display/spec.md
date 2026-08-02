@@ -193,3 +193,26 @@ The display page SHALL restrict itself to the four grey levels the panel can rep
 
 - **WHEN** the page is rendered with no access to any external font host
 - **THEN** the intended typeface is still applied, because font assets are served by the application itself
+
+### Requirement: Emoji in names render from a bundled monochrome font
+
+Child names may contain emoji. The display SHALL render them from a monochrome emoji font bundled and served by the application, alongside the text typeface.
+
+A colour emoji font SHALL NOT be relied on. Colour glyphs reduced to four grey levels at name size become indistinct, and falling back to whichever emoji font the screenshotting browser happens to carry reintroduces exactly the external dependency the self-hosted typeface exists to remove — with tofu boxes on the kitchen wall as the failure mode.
+
+A name containing emoji SHALL NOT change the position or size of anything else on the canvas.
+
+#### Scenario: An emoji name renders as line art
+
+- **WHEN** a child's name contains an emoji and the page is reduced to four grey levels
+- **THEN** the emoji renders as a legible monochrome glyph rather than as an indistinct dark shape
+
+#### Scenario: No emoji font is available from the system
+
+- **WHEN** the page is rendered by a browser carrying no emoji font of its own
+- **THEN** emoji in names still render, because the font is served by the application
+
+#### Scenario: An emoji name does not disturb the layout
+
+- **WHEN** a child's name contains emoji, both in its grid row label and in its task block heading
+- **THEN** the sticker grid, the task blocks and the render stamp all stay in their fixed positions

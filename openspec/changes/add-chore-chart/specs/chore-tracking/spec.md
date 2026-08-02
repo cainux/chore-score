@@ -4,14 +4,49 @@ Records whether each child met their daily expectations, anchored to London cale
 
 ## ADDED Requirements
 
-### Requirement: Children are a fixed roster
+### Requirement: Children are a fixed roster with editable names
 
-The system SHALL track exactly the children configured for the household. Each child SHALL have a display name and a stable identifier. Children are configured at setup time and are not created or removed through the running application.
+The system SHALL track exactly the children configured for the household. Each child SHALL have a stable identifier, an editable display name, and a fixed position in the order.
+
+Roster membership is configured at setup time: children SHALL NOT be created or removed through the running application, and their order SHALL NOT be editable. The display name SHALL be editable, because it is decoration rather than identity — parents change it to mark birthdays, holidays and other occasions.
+
+A child's identifier SHALL NOT change when its name changes, so that existing day marks and task lists remain attached to the same child.
 
 #### Scenario: Both children are present
 
 - **WHEN** any page loads
 - **THEN** the system returns both configured children in a stable, consistent order
+
+#### Scenario: Renaming keeps the child's history
+
+- **WHEN** a child's display name is changed
+- **THEN** that child's day marks and task list are unaffected, because they are keyed to the identifier rather than the name
+
+#### Scenario: Order does not follow the name
+
+- **WHEN** a child's display name is changed
+- **THEN** the order the children appear in is unchanged
+
+### Requirement: Display names may contain emoji
+
+A child's display name SHALL be stored and rendered as arbitrary Unicode text, including emoji, so that a parent can decorate it for a birthday or a holiday.
+
+The system SHALL treat a name as a sequence of user-perceived characters when measuring its length, so that a multi-code-point emoji counts as one character rather than several. Names SHALL be limited to a length the display can render without disturbing its fixed layout.
+
+#### Scenario: An emoji name round-trips
+
+- **WHEN** a parent saves a name containing emoji
+- **THEN** the stored name is byte-for-byte what was submitted, and both pages render it unchanged
+
+#### Scenario: A composed emoji counts as one character
+
+- **WHEN** a name contains an emoji built from several code points, such as one carrying a skin-tone or joining modifier
+- **THEN** it counts as a single character against the name length limit
+
+#### Scenario: An over-long name is rejected
+
+- **WHEN** a parent submits a name longer than the display can accommodate
+- **THEN** the name is not saved and the parent is told why
 
 ### Requirement: A day mark is all-or-nothing per child
 
