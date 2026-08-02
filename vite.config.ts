@@ -40,9 +40,16 @@ export default defineConfig({
 					name: 'server',
 					environment: 'node',
 					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+					// The workers pattern must be excluded here as well as included
+					// there, or every workerd test runs a second time in node and
+					// fails on its `cloudflare:test` import.
+					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}', 'src/**/*.workers.spec.ts']
 				}
-			}
+			},
+
+			// Real workerd + D1 via Miniflare — see design.md D9 and
+			// vitest.workers.config.ts for why it does not extend this file.
+			'./vitest.workers.config.ts'
 		]
 	}
 });
