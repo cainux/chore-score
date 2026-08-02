@@ -153,6 +153,8 @@ Recorded here alongside the reasoning above rather than replacing it, the way th
 - **D19's ordering is load-bearing and was checked, not assumed.** Both cross-tab e2e tests were run against a deliberately broken `notifyLive()` and both fail without the nudge. A test that passes either way would have been worse than no test, given what it is standing in for.
 - **The task numbering moved once.** Task 5.2 asks for a *server* test of the view builder; it is in the **`workers`** lane instead, because the builder reads D1 and resolves the London date through `londonParts`, and CLAUDE.md requires real workerd for both (design.md D9). A node test would have full ICU and no D1 and so could not see either of the two things most likely to be wrong in production.
 
+- **The panel confirmed the extraction.** It captured cleanly on the poll after the deploy and drew the same chart it had drawn before. That is the acceptance test the local suite cannot give: `Panel.svelte` is now rendered by two routes, and the wall cannot tell.
+
 Nothing here overturned a decision. D16–D22 stand as written.
 
 ## Risks / Trade-offs
