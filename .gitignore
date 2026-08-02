@@ -32,3 +32,6 @@ worker-configuration.d.ts
 
 # Worker secrets for local dev
 .dev.vars
+
+# Playwright
+playwright-report

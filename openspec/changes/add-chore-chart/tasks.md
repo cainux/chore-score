@@ -45,10 +45,10 @@ The database, its binding, and the schema migration land in section 1 because th
 
 - [x] 5.1 Add Worker secret bindings for the admin password and the display header value; fail closed with a clear error when either is missing
 - [x] 5.2 Implement constant-time secret comparison and use it for both gates
-- [ ] 5.3 Implement the display gate in `hooks.server.ts`: reject requests to `/display` lacking the expected header value
+- [x] 5.3 Implement the display gate in `hooks.server.ts`: reject requests to `/display` lacking the expected header value
 - [x] 5.4 Implement the admin session cookie — HMAC-signed with an issued-at timestamp, `HttpOnly`, `Secure`, `SameSite=Lax`, long expiry
-- [ ] 5.5 Implement the admin gate in `hooks.server.ts` plus a password form; reject tampered cookies and give no hint on a wrong password
-- [ ] 5.6 Test that an admin session does not open `/display`, and that the display header does not open `/admin`
+- [x] 5.5 Implement the admin gate in `hooks.server.ts` plus a password form; reject tampered cookies and give no hint on a wrong password
+- [x] 5.6 Test that an admin session does not open `/display`, and that the display header does not open `/admin`
 
 ## 6. Display page
 
