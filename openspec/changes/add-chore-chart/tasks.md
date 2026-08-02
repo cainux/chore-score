@@ -3,7 +3,7 @@
 The scaffold exists (SvelteKit, TypeScript, vitest, Playwright, eslint, prettier). What remains is pointing it at Cloudflare and building the harness that can actually see the ICU risk — see design.md D9 for why the Wrangler config and schema live in this section rather than in section 3.
 
 - [x] 1.1 Switch `adapter-auto` to `adapter-cloudflare`; note the adapter is configured inline in `vite.config.ts`, as this project has no `svelte.config.js`
-- [ ] 1.2 Add `wrangler.jsonc` with `main`, `assets`, and a `compatibility_date`; confirm `wrangler dev` serves the app
+- [x] 1.2 Add `wrangler.jsonc` with `main`, `assets`, and a `compatibility_date`; confirm `wrangler dev` serves the app
 - [ ] 1.3 Create the D1 database and add its binding to `wrangler.jsonc`
 - [ ] 1.4 Write the migration creating `children`, `day_marks`, and `task_lists` per design.md D1
 - [ ] 1.4a Install `@cloudflare/vitest-pool-workers` — it is not currently a dependency, though `pnpm-workspace.yaml` already allows the `workerd` build for it. The release line peering `vitest ^4.1` pins the `wrangler` and `miniflare` versions already in the lockfile, so it should resolve without moving anything else; check that it does
