@@ -11,6 +11,8 @@ Two places hold the written record, and they answer different questions:
 - **`openspec/specs/*/spec.md`** — what the system does now. Four capabilities, 46 requirements: `chore-tracking`, `chart-display`, `parent-admin`, `access-control`. This is the living contract; keep it true.
 - **`openspec/changes/archive/2026-08-02-add-chore-chart/`** — **why**, which the specs deliberately do not carry. Its `design.md` holds the numbered decisions (D1–D15) that the code comments and this file cite as "design.md D9" and the like. Several were reversed by the physical panel and record both the original reasoning and what overturned it, so read the whole entry rather than skimming for the current answer.
 
+**The decision series is continuous across changes.** It runs D1–D15 in the archived `add-chore-chart` and continues at **D16** in `add-live-display-preview`'s `design.md`, which covers the shared canvas and the live preview. A citation of "design.md D19" means that file, not a second series starting over at D1 — which is exactly why the numbering carries on rather than restarting.
+
 Read `design.md` before changing anything on the display or in the date module. It makes decisions — absence-as-state schema, two asymmetric auth gates, a fixed-pixel canvas, a trophy with no notion of today — that are not recoverable from the source tree, and that look arbitrary until you know what they cost to learn.
 
 ## Commands
@@ -35,8 +37,8 @@ Running a subset:
 ```sh
 pnpm test:unit --run src/lib/dates.spec.ts     # one unit file, no watch
 pnpm test:unit --run --project server          # node-side only      (115)
-pnpm test:unit --run --project client          # browser-side only    (32)
-pnpm test:unit --run --project workers         # real workerd + D1    (53)
+pnpm test:unit --run --project client          # browser-side only    (37)
+pnpm test:unit --run --project workers         # real workerd + D1    (59)
 npx playwright test -g "44x44"                 # e2e tests matching a name
 ```
 
@@ -88,10 +90,23 @@ Every other date function takes a date string and is testable with no clock, zon
 
 ## Architecture
 
-SvelteKit on Cloudflare Workers with D1. Two routes with almost nothing in common — deliberately no shared UI layer:
+SvelteKit on Cloudflare Workers with D1. Two route families with almost nothing in common — deliberately no shared UI layer:
 
-- **`GET /display`** — server-rendered chart for a TRMNL OG e-ink panel screenshotted by a headless browser. Fixed 800×480 absolute-pixel layout, 2-bit greyscale palette, inline SVG, self-hosted `woff2`, **zero external requests and zero client-side rendering** (anything that renders after the screenshot fires does not exist), `Cache-Control: no-store`.
+- **`GET /display`** — server-rendered chart for a TRMNL OG e-ink panel screenshotted by a headless browser. Fixed 800×480 absolute-pixel layout, 2-bit greyscale palette, inline SVG, self-hosted `woff2`, **zero external requests and no client runtime at all** (not merely nothing the appearance depends on: `csr = false`, no hydration, nothing scheduled after the response), `Cache-Control: no-store`.
 - **`/admin/*`** — phone-first single scrolling column for parents. Mutations are SvelteKit **form actions** that work without JavaScript, with `use:enhance` layering optimistic toggling on top.
+
+### The canvas is shared; the pages are not
+
+`/display` and `/admin/preview` render the **same** chart from the **same** code:
+
+- `src/lib/display/Panel.svelte` — the `.panel` element, everything in it, all of its CSS, and the `fonts.css` import. What each route keeps is only what is properly route-level: the `html`/`body` reset and the `width=800` viewport meta on `/display`, the scale-to-fit wrapper and the channel listener on the preview.
+- `src/lib/server/display/view.ts` — `buildDisplayView(db, now)`. Both loads are thin callers of it.
+
+Sharing **both** is the point. Sharing only the component would leave two places computing rows, bullets and trophies; sharing only the loader would leave two copies of the markup. Either half alone reintroduces the drift the spec forbids — see design.md D18 in the `add-live-display-preview` change.
+
+**`/admin/preview` is under `/admin` and must stay there.** It is the live view: it hydrates, listens on a `BroadcastChannel`, and calls `invalidateAll()` when the admin page reports a saved edit. Two reasons it is not a mode of `/display` (design.md D16). First, the panel must never reach a hydrating page — a capture timed against network idle does not fire cleanly on one, and that failure is silent, because the wall keeps its last good image and nothing announces the fault. Second, `gateFor()` already routes `/admin/*` to the session gate, so the display key — the credential sitting in a third party's plugin config — cannot open it, structurally rather than by a rule.
+
+The nudge (`src/lib/live.ts`) **carries no payload**: the preview re-reads from the server rather than accepting a description of the change, so it can only ever show a view model the server produced. It is posted after `await update()` resolves and only on success — earlier is a race the preview loses, leaving it confidently one edit behind. Reach is one browser, deliberately (design.md D21).
 
 `hooks.server.ts` holds two gates: a secret-header check for `/display` and an HMAC-signed cookie session for `/admin`. Both secrets come from Worker bindings and the app fails closed if either is missing. They are **asymmetric on purpose** — an admin session also opens `/display`, so a parent can preview the wall chart from a phone, but the display key never opens `/admin`. That key is configured into a third-party screenshot service and sent on every poll, making it the most exposed credential here, so it confers nothing beyond reading the chart (design.md D4).
 
@@ -103,7 +118,7 @@ Storage is three tables (`children`, `day_marks`, `task_lists`). `day_marks` has
 
 Changes are spec-driven through the `openspec` CLI (v1.7.0) and its skills (`openspec-propose`, `openspec-apply-change`, `openspec-update-change`, `openspec-sync-specs`, `openspec-archive-change`, `openspec-explore`), also available as `/opsx:*` commands. Work implements `tasks.md`; when behaviour changes, update the change's artifacts rather than editing code alone. `openspec/config.yaml` requires design docs to include a mermaid data-flow diagram.
 
-New work starts with `/opsx:propose`, which creates a change under `openspec/changes/` with `openspec/specs/` as its baseline — a **modified** capability needs a delta spec whose folder name matches the existing one. There are no active changes right now.
+New work starts with `/opsx:propose`, which creates a change under `openspec/changes/` with `openspec/specs/` as its baseline — a **modified** capability needs a delta spec whose folder name matches the existing one. One change is active: `add-live-display-preview`, implemented but not yet archived.
 
 The archived change is worth imitating in one respect: when the panel overturned a decision, the reversal was written into `design.md` alongside the original argument rather than replacing it, and the superseded tasks were annotated with what reversed them instead of being deleted. That is why "why is the trophy so plain?" has an answer. Keep doing it.
 

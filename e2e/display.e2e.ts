@@ -258,6 +258,33 @@ test.describe('the display page fits its panel', () => {
 		await context.close();
 	});
 
+	test('ships no client runtime, not merely no dependence on one', async ({ page, request }) => {
+		// Stronger than the rendering needs, deliberately. The capture is commonly
+		// timed against the network falling idle, which a page holding a connection
+		// never does — and that failure is silent, because the panel keeps its last
+		// good image with no power. Live behaviour lives on /admin/preview instead
+		// (design.md D16).
+		const response = await request.get('/display', {
+			headers: { 'x-display-key': DISPLAY_KEY }
+		});
+		const html = await response.text();
+
+		expect(html).toContain('class="panel');
+		// SvelteKit's client runtime announces itself with a `__sveltekit_` data
+		// blob and a module script that starts it. Neither may be here.
+		expect(html).not.toContain('__sveltekit_');
+		expect(html).not.toMatch(/<script[^>]*type="module"/);
+
+		// And nothing is scheduled once it has loaded, so a capture waiting for
+		// idle is not waiting for this page.
+		await page.goto('/display');
+		await page.evaluate(() => document.fonts.ready);
+		const after: string[] = [];
+		page.on('request', (r) => after.push(r.url()));
+		await page.waitForTimeout(1000);
+		expect(after).toEqual([]);
+	});
+
 	test('screenshots at exactly 800x480', async ({ page }) => {
 		await page.goto('/display');
 		await page.evaluate(() => document.fonts.ready);

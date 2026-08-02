@@ -50,16 +50,34 @@ test.describe('the page is laid out for a phone', () => {
 		}
 	});
 
-	test('links to the wall display, and it opens without the header', async ({ page, context }) => {
-		const link = page.getByRole('link', { name: 'Preview the wall display' });
-		await expect(link).toBeVisible();
+	test('offers both previews, labelled static and live', async ({ page }) => {
+		// "preview" and "preview" tells a parent nothing about which to follow, so
+		// the two words are required rather than nice to have.
+		const staticLink = page.getByRole('link', { name: 'Static preview' });
+		const liveLink = page.getByRole('link', { name: 'Live preview' });
 
-		const box = await link.boundingBox();
-		expect(box!.height).toBeGreaterThanOrEqual(44);
+		await expect(staticLink).toBeVisible();
+		await expect(liveLink).toBeVisible();
 
-		// The session alone is enough — this is the whole point of the link.
-		const response = await context.request.get(await link.getAttribute('href')!);
-		expect(response.status()).toBe(200);
+		// Both open away from this page, so scroll position and unsaved text
+		// survive following one.
+		for (const link of [staticLink, liveLink]) {
+			expect(await link.getAttribute('target')).toBe('_blank');
+			expect(await link.getAttribute('rel')).toContain('noopener');
+			const box = await link.boundingBox();
+			expect(box!.height).toBeGreaterThanOrEqual(44);
+		}
+	});
+
+	test('both previews open on the session alone, without the display header', async ({
+		page,
+		context
+	}) => {
+		for (const name of ['Static preview', 'Live preview']) {
+			const href = await page.getByRole('link', { name }).getAttribute('href');
+			const response = await context.request.get(href!);
+			expect(response.status()).toBe(200);
+		}
 	});
 
 	test('names the date as a heading rather than as small print', async ({ page }) => {

@@ -200,6 +200,18 @@ test.describe('the gates are asymmetric', () => {
 		expect(response.headers()['location']).toContain('/admin/login');
 	});
 
+	test('the display header does not open the live preview', async ({ request }) => {
+		// The one page in this system that must never be screenshotted onto the
+		// panel. It lives under /admin so gateFor() shuts this by construction
+		// rather than by a rule written for it (design.md D16).
+		const response = await request.get('/admin/preview', {
+			headers: { 'x-display-key': DISPLAY_KEY },
+			maxRedirects: 0
+		});
+		expect(response.status()).toBe(303);
+		expect(response.headers()['location']).toContain('/admin/login');
+	});
+
 	test('the display header does not authenticate a login POST', async ({ request }) => {
 		const response = await postLogin(request, 'not-the-password', {
 			'x-display-key': DISPLAY_KEY

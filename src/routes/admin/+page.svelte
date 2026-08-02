@@ -5,6 +5,7 @@
 	import { longDate, shortDate, WEEKDAY_INITIALS } from '$lib/admin/dayLabels';
 	import { toBullets } from '$lib/chart';
 	import { londonToday } from '$lib/dates';
+	import { notifyLive } from '$lib/live';
 	import { graphemeCount } from '$lib/names';
 	import { BULLETS_COMFORTABLE, NAME_MAX_GRAPHEMES } from '$lib/settings';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -103,6 +104,11 @@
 						// wrong prior state.
 						await update({ reset: false });
 						optimistic.delete(key);
+						// The live preview, if one is open in another tab. After the
+						// write is known to have landed and only then: nudging earlier
+						// is a race the preview loses, redrawing the old state and then
+						// never hearing about the real one (design.md D19).
+						notifyLive();
 					};
 				}}
 			>
@@ -149,9 +155,11 @@
 											toggleError = 'That change did not save. Try again.';
 											return;
 										}
-										// See the today card above: clear after, not before.
+										// See the today card above: clear after, not before, and
+										// nudge the preview only once the write has landed.
 										await update({ reset: false });
 										optimistic.delete(key);
+										notifyLive();
 									};
 								}}
 							>
@@ -189,8 +197,13 @@
 				action="?/save"
 				use:enhance={() => {
 					return async ({ result, update }) => {
-						if (result.type !== 'failure') drafts.delete(child.id);
+						const saved = result.type !== 'failure';
+						if (saved) drafts.delete(child.id);
 						await update({ reset: false });
+						// Only a save that actually stored something reaches the live
+						// preview. A refused name leaves the preview showing what is
+						// stored, which is what it is for (design.md D19).
+						if (saved) notifyLive();
 					};
 				}}
 			>
@@ -240,15 +253,33 @@
 	</section>
 
 	<!--
-		The wall chart, as the panel sees it. It has no viewport meta of its own —
-		it is a fixed 800x480 canvas with exactly one real viewer (design.md D6) —
-		so a phone scales the whole thing down to fit, which is what makes it
-		previewable at all. Opened in a new tab so the admin page keeps its scroll
-		position and any unsaved text.
+		Two previews, and the words "static" and "live" are the whole point of the
+		labels: "preview" and "preview" tells a parent nothing about which to pick.
+
+		The static one is the display route itself — exactly what the panel
+		captures, rendered once, with no script. It has no viewport meta of its own
+		— it is a fixed 800x480 canvas with exactly one real viewer (design.md D6)
+		— so a phone scales the whole thing down to fit, which is what makes it
+		previewable at all.
+
+		The live one follows this page as it is edited, and its reach is one
+		browser: the nudge travels by BroadcastChannel, which is same-origin and
+		same-tab-group, so a tablet in another room will not follow along (design.md
+		D21). It shows saved state only.
+
+		Both open in a new tab so this page keeps its scroll position and any
+		unsaved text.
 	-->
-	<p class="preview">
-		<a href={resolve('/display')} target="_blank" rel="noopener">Preview the wall display</a>
-	</p>
+	<div class="preview">
+		<p>
+			<a href={resolve('/display')} target="_blank" rel="noopener">Static preview</a>
+			<span class="note">exactly what the panel captures, as things stand now</span>
+		</p>
+		<p>
+			<a href={resolve('/admin/preview')} target="_blank" rel="noopener">Live preview</a>
+			<span class="note">follows this page as you save, in this browser</span>
+		</p>
+	</div>
 </main>
 
 <style>
@@ -460,11 +491,25 @@
 		padding-top: 1rem;
 	}
 
+	.preview p {
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
 	.preview a {
 		display: inline-flex;
 		align-items: center;
 		/* The same minimum touch target as everything else on this page. */
 		min-height: 44px;
 		color: #111111;
+	}
+
+	.preview .note {
+		/* Which link to follow, said once, rather than left to be discovered by
+		   following the wrong one. */
+		margin-top: -0.4rem;
+		font-size: 0.85rem;
+		color: #555555;
 	}
 </style>

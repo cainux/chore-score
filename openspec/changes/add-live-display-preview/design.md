@@ -144,6 +144,17 @@ _Why:_ it is accurate — that *is* when the chart was produced. The stamp exist
 
 Accepted with it: a preview left open across midnight has stale day squares until something nudges it. The same trade was made on the admin page, which handles it with `refreshIfStale` on `visibilitychange` and `pageshow`. Wiring the preview into that pattern is not part of this change; if the stale-square case turns out to bite, it is a small follow-up and not a redesign.
 
+## What the desk found
+
+Recorded here alongside the reasoning above rather than replacing it, the way the archived change recorded what the panel overturned.
+
+- **D18 held, measurably.** With both tabs open and an edit saved in one, the preview's `.panel` and a fresh capture of `/display` are the **same PNG, byte for byte** — same task text, same bold and italic runs, same grid, same stamp. Nothing about the shared canvas needed adjusting for the preview's sake.
+- **D20 gained a border it did not ask for.** The canvas is white on a white page, so at scale 1 the chart had no visible extent — the preview looked like a page of content rather than like a picture of a panel. A 1px `#ddd` outline on the scaling wrapper fixes it. It is on the wrapper, never on `Panel.svelte`, because the panel must not grow a frame the wall would then have to draw.
+- **D19's ordering is load-bearing and was checked, not assumed.** Both cross-tab e2e tests were run against a deliberately broken `notifyLive()` and both fail without the nudge. A test that passes either way would have been worse than no test, given what it is standing in for.
+- **The task numbering moved once.** Task 5.2 asks for a *server* test of the view builder; it is in the **`workers`** lane instead, because the builder reads D1 and resolves the London date through `londonParts`, and CLAUDE.md requires real workerd for both (design.md D9). A node test would have full ICU and no D1 and so could not see either of the two things most likely to be wrong in production.
+
+Nothing here overturned a decision. D16–D22 stand as written.
+
 ## Risks / Trade-offs
 
 - **The extraction touches the one page that must not regress** → `e2e/display.e2e.ts` passes unchanged, not adjusted to accommodate the refactor. If a display e2e test needs editing, the extraction changed behaviour and is wrong.
