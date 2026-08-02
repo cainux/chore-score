@@ -1,0 +1,17 @@
+# Local development secrets. Copy to .dev.vars, which is gitignored.
+#
+# In production these are Worker secrets, set with:
+#   wrangler secret put ADMIN_PASSWORD
+#   wrangler secret put DISPLAY_KEY
+#   wrangler secret put SESSION_SECRET
+#
+# The app fails closed if any is missing — it will not fall back to a default.
+
+# Shared password for /admin, known to both parents.
+ADMIN_PASSWORD="change me"
+
+# Value the TRMNL Screenshot plugin sends in the X-Display-Key header.
+DISPLAY_KEY="change me too"
+
+# Key the admin session cookie is signed with. Rotating it signs everyone out.
+SESSION_SECRET="and me"
