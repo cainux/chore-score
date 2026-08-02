@@ -51,3 +51,48 @@ export function londonParts(now: Date): { date: DateString; time: string } {
 export function londonToday(now: Date): DateString {
 	return londonParts(now).date;
 }
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Parses `YYYY-MM-DD` to the UTC midnight of that calendar date.
+ *
+ * Not `new Date(string)`: that is only specified for well-formed input, and a
+ * malformed date would silently become an Invalid Date that propagates as NaN
+ * through every subsequent calculation.
+ */
+function toUtcMs(date: DateString): number {
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+	if (match === null) throw new Error(`not a YYYY-MM-DD date: ${date}`);
+
+	const [, year, month, day] = match;
+	const ms = Date.UTC(Number(year), Number(month) - 1, Number(day));
+
+	// Date.UTC rolls overflow forward — month 13 becomes January of the next
+	// year — so a round trip is what actually rejects 2026-02-30.
+	if (fromUtcMs(ms) !== date) throw new Error(`not a real calendar date: ${date}`);
+	return ms;
+}
+
+/** Formats a UTC millisecond instant back to `YYYY-MM-DD`. */
+function fromUtcMs(ms: number): DateString {
+	return new Date(ms).toISOString().slice(0, 10);
+}
+
+/** Adds a whole number of days to a date. UTC has no DST, so a day is a day. */
+export function addDays(date: DateString, days: number): DateString {
+	return fromUtcMs(toUtcMs(date) + days * DAY_MS);
+}
+
+/**
+ * The Monday of the week containing `date`.
+ *
+ * Weeks run Monday to Sunday, so a Sunday belongs to the Monday six days
+ * before it rather than to the one the next day.
+ */
+export function weekStart(date: DateString): DateString {
+	const ms = toUtcMs(date);
+	// getUTCDay is 0 for Sunday; shift so Monday is 0 and Sunday is 6.
+	const offset = (new Date(ms).getUTCDay() + 6) % 7;
+	return fromUtcMs(ms - offset * DAY_MS);
+}
