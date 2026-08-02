@@ -4,14 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-**Built, deployed and running on the wall.** Production is <https://chores.oha.me>, and `/display` on it is what the TRMNL panel captures every 15 minutes. The `add-chore-chart` change that built it is complete and archived.
+**Built, deployed and running on the wall.** Production is <https://chores.oha.me>, and `/display` on it is what the TRMNL panel captures every 15 minutes. Both changes that built it — `add-chore-chart` and `add-live-display-preview` — are complete and archived.
 
 Two places hold the written record, and they answer different questions:
 
-- **`openspec/specs/*/spec.md`** — what the system does now. Four capabilities, 46 requirements: `chore-tracking`, `chart-display`, `parent-admin`, `access-control`. This is the living contract; keep it true.
-- **`openspec/changes/archive/2026-08-02-add-chore-chart/`** — **why**, which the specs deliberately do not carry. Its `design.md` holds the numbered decisions (D1–D15) that the code comments and this file cite as "design.md D9" and the like. Several were reversed by the physical panel and record both the original reasoning and what overturned it, so read the whole entry rather than skimming for the current answer.
+- **`openspec/specs/*/spec.md`** — what the system does now. Four capabilities, 53 requirements: `chore-tracking` (13), `chart-display` (11), `parent-admin` (20), `access-control` (9). This is the living contract; keep it true.
+- **`openspec/changes/archive/*/`** — **why**, which the specs deliberately do not carry. Two archived changes, each with a `design.md` holding the numbered decisions that code comments and this file cite as "design.md D9" and the like. Several were reversed by the physical panel and record both the original reasoning and what overturned it, so read the whole entry rather than skimming for the current answer.
 
-**The decision series is continuous across changes.** It runs D1–D15 in the archived `add-chore-chart` and continues at **D16** in `add-live-display-preview`'s `design.md`, which covers the shared canvas and the live preview. A citation of "design.md D19" means that file, not a second series starting over at D1 — which is exactly why the numbering carries on rather than restarting.
+**The decision series is continuous across the two archives, and citations are bare numbers.** So the number tells you which file:
+
+| Decisions | Archive | Covers |
+| --------- | ------- | ------ |
+| D1–D15 | `2026-08-02-add-chore-chart/design.md` | the schema, the gates, the fixed canvas, the trophy, the fonts |
+| D16–D22 | `2026-08-02-add-live-display-preview/design.md` | the shared canvas and view builder, and the live preview |
+
+A citation of "design.md D19" means the second file. The numbering carries on rather than restarting precisely so that stays unambiguous — keep continuing it, at D23.
 
 Read `design.md` before changing anything on the display or in the date module. It makes decisions — absence-as-state schema, two asymmetric auth gates, a fixed-pixel canvas, a trophy with no notion of today — that are not recoverable from the source tree, and that look arbitrary until you know what they cost to learn.
 
@@ -118,9 +125,9 @@ Storage is three tables (`children`, `day_marks`, `task_lists`). `day_marks` has
 
 Changes are spec-driven through the `openspec` CLI (v1.7.0) and its skills (`openspec-propose`, `openspec-apply-change`, `openspec-update-change`, `openspec-sync-specs`, `openspec-archive-change`, `openspec-explore`), also available as `/opsx:*` commands. Work implements `tasks.md`; when behaviour changes, update the change's artifacts rather than editing code alone. `openspec/config.yaml` requires design docs to include a mermaid data-flow diagram.
 
-New work starts with `/opsx:propose`, which creates a change under `openspec/changes/` with `openspec/specs/` as its baseline — a **modified** capability needs a delta spec whose folder name matches the existing one. One change is active: `add-live-display-preview`, implemented but not yet archived.
+New work starts with `/opsx:propose`, which creates a change under `openspec/changes/` with `openspec/specs/` as its baseline — a **modified** capability needs a delta spec whose folder name matches the existing one. There are no active changes right now.
 
-The archived change is worth imitating in one respect: when the panel overturned a decision, the reversal was written into `design.md` alongside the original argument rather than replacing it, and the superseded tasks were annotated with what reversed them instead of being deleted. That is why "why is the trophy so plain?" has an answer. Keep doing it.
+The archived changes are worth imitating in one respect: when the panel or the desk overturned a decision, the reversal was written into `design.md` alongside the original argument rather than replacing it, and the superseded tasks were annotated with what reversed them instead of being deleted. `add-live-display-preview` carries a "What the desk found" section doing the same for what its implementation turned up. That is why "why is the trophy so plain?" has an answer. Keep doing it.
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
 
