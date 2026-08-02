@@ -11,8 +11,8 @@ The scaffold exists (SvelteKit, TypeScript, vitest, Playwright, eslint, prettier
 - [x] 1.6 Establish empirically whether D1 state is isolated between tests in the installed version; if it is not, settle the cleanup convention before any data-layer test is written
 - [x] 1.6a Settle how the schema migration is applied inside the pool so D1 tests start against real tables — the mechanism belongs with whatever 1.6 concludes about isolation, since the two together decide what a test can assume on entry
 - [x] 1.7 Write the ICU check as a `*.workers.spec.ts` test pinning a known BST instant, asserting both the London date and the London clock time, so Workers' timezone support is asserted on every run rather than observed once — the time is the more sensitive probe, since a wrong offset shifts it every hour of the day
-- [ ] 1.8 If 1.7 fails, implement the hand-rolled BST fallback (last Sunday in March to last Sunday in October) described in design.md, and note the deviation
-- [ ] 1.9 Delete the scaffolding placeholders (`src/routes/demo/`, `src/lib/vitest-examples/`, `src/lib/index.ts`, the stock `+page.svelte`); note that removing the demo e2e leaves Playwright with no tests and a non-zero exit until the first real one lands
+- [x] 1.8 If 1.7 fails, implement the hand-rolled BST fallback (last Sunday in March to last Sunday in October) described in design.md, and note the deviation — **not needed**: 1.7 passes in real workerd, including both 2026 transition instants, so `Intl` is used as designed and no fallback exists
+- [x] 1.9 Delete the scaffolding placeholders (`src/routes/demo/`, `src/lib/vitest-examples/`, `src/lib/index.ts`, the stock `+page.svelte`); note that removing the demo e2e leaves Playwright with no tests and a non-zero exit until the first real one lands
 
 ## 2. Date module — UTC only, with one London-aware function
 
