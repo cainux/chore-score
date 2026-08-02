@@ -82,7 +82,7 @@ The database, its binding, and the schema migration land in section 1 because th
 
 ## 8. Deploy and validate on the real panel
 
-- [ ] 8.1 Deploy to a Workers preview URL with secrets set and the migration applied
+- [x] 8.1 Deploy to a Workers preview URL with secrets set and the migration applied
 - [ ] 8.2 Point the TRMNL Screenshot plugin at the preview URL with the custom header; confirm it captures successfully
 - [ ] 8.3 Check the capture on the physical panel: are the squares legible at kitchen distance, does the font survive 2-bit conversion, are the three square states distinguishable, is a solid trophy unmistakable from a hollow one across the room, does the faint trophy stay clear of the `#AAA` grid lines around it, and does a monochrome emoji in a name read as a picture at name size
 - [ ] 8.4 Adjust type sizes, weights, and grey levels based on what the panel actually shows; decide the typeface open question here, whether the won trophy needs to be black rather than `#555`, whether the render stamp is legible at `#AAA` or needs `#555`, and settle the name length limit against real emoji names — the provisional values are collected in the module from task 4.7
