@@ -303,8 +303,11 @@ _If a third child ever arrives_, the fix is retuning pixel numbers, which is exa
   split on line breaks
   trim each line
   drop lines that are then empty
-  strip a leading '-', '*' or '•' and the space after it
+  strip a leading '-', '*' or '•' and the space after it,
+    unless that character is immediately repeated
 ```
+
+_Why the repeat exception:_ found while implementing. Stripping unconditionally turns `**Piano**` into `*Piano**`, which satisfies neither this rule nor the "rendered literally as typed" requirement below, and the panel gives nobody a way to report it. A doubled marker is not how anyone writes a list item, so treating it as content costs nothing.
 
 _Why these two rules specifically:_ both correct near-certain human behaviour. A parent who leaves a blank line between entries would otherwise get an empty bullet on a canvas with no room for one, and a parent who types `- Piano` — which is simply how people write lists — would otherwise get `• - Piano` on the kitchen wall, where nobody can fix it without walking to their phone.
 

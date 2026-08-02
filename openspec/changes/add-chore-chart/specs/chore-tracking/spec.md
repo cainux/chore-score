@@ -219,6 +219,8 @@ The system SHALL store one free-text task list per child, consisting of plain-te
 
 The system SHALL convert a stored task list into bullets by a single defined rule: split the text on line breaks, trim surrounding whitespace from each line, discard lines that are then empty, and remove a leading `-`, `*`, or `•` together with any whitespace following it. Each remaining line SHALL become exactly one bullet.
 
+A marker that is immediately repeated SHALL NOT be treated as a marker. `**bold**` is content, not a list item, and stripping one character from it would render `*bold**` — neither the marker rule doing its job nor the text rendering as typed. A line consisting only of a marker SHALL produce no bullet.
+
 The stored text SHALL be treated as plain text. The system SHALL NOT interpret it as Markdown or any other markup, and SHALL NOT apply emphasis, links, nesting, or any transformation beyond the rule above.
 
 The stored text SHALL be preserved exactly as the parent saved it. The conversion SHALL apply when the list is rendered, so that reopening the editor shows what was typed rather than what was displayed.
@@ -237,6 +239,11 @@ The stored text SHALL be preserved exactly as the parent saved it. The conversio
 
 - **WHEN** a stored task list contains characters that would be meaningful in Markdown, such as `**` or `_`
 - **THEN** they are rendered literally as typed
+
+#### Scenario: A doubled marker is content
+
+- **WHEN** a line begins with a repeated marker character, such as `**Piano**` or `--- break ---`
+- **THEN** nothing is stripped and the line renders exactly as typed
 
 #### Scenario: Reopening the editor shows the stored text
 
