@@ -6,7 +6,13 @@ declare global {
 		// interface Locals {}
 		// interface PageData {}
 		// interface PageState {}
-		// interface Platform {}
+		interface Platform {
+			// `Env` is generated into worker-configuration.d.ts by `wrangler types`,
+			// which runs from the `prepare` script. The file is not committed.
+			env: Env;
+			cf: CfProperties;
+			ctx: ExecutionContext;
+		}
 	}
 }
 
