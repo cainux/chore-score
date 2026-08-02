@@ -37,9 +37,6 @@ export const load: PageServerLoad = async ({ platform }) => {
 			id: child.id,
 			name: child.name,
 			tasks: taskListFor(taskLists, child.id),
-			// Today's own control, kept separate from the correction grid because
-			// marking today is the overwhelmingly common reason to open this page.
-			todayEarned: marks.has(markKey(child.id, today)),
 			// Current week first, then previous — the same order the display uses,
 			// so the two surfaces agree about which week is where.
 			weeks: [current, previous].map((dates) =>
@@ -62,7 +59,7 @@ export const actions: Actions = {
 	 * The date comes from the control, and the server applies *that* date rather
 	 * than re-deriving today (design.md D14). Without this the page has a silent
 	 * bug at the moment it is most used: a parent recording that today went fine,
-	 * tapping at 00:20, would write Sunday while looking at a card that says
+	 * tapping at 00:20, would write Sunday while looking at a control rendered for
 	 * Saturday — and nothing would catch it, because at 00:20 Sunday is not a
 	 * future date.
 	 */

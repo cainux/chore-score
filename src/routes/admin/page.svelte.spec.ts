@@ -40,7 +40,6 @@ function data(today = RENDERED_ON) {
 				id: 'alice',
 				name: 'Alice',
 				tasks: 'Piano\nReading',
-				todayEarned: false,
 				weeks: [week(CURRENT_WEEK), week(PREVIOUS_WEEK)]
 			}
 		]
@@ -143,10 +142,14 @@ describe('the controls carry their own date', () => {
 		setToday('2026-08-02');
 		const page = render(Page, { data: data(RENDERED_ON), form: null });
 
-		// The card was rendered for 1 August and still says so, even though the
-		// London date has since rolled over to the 2nd. That is the point: it
-		// records the day the parent was looking at (design.md D14).
-		const todayForm = page.baseElement.querySelector('.today form')!;
+		// Today's own cell in the correction grid was rendered for 1 August and
+		// still says so, even though the London date has since rolled over to
+		// the 2nd. That is the point: it records the day the parent was looking
+		// at (design.md D14).
+		const forms = [...page.baseElement.querySelectorAll('.corrections form')];
+		const todayForm = forms.find(
+			(form) => form.querySelector<HTMLInputElement>('[name=date]')!.value === RENDERED_ON
+		)!;
 		const date = todayForm.querySelector<HTMLInputElement>('[name=date]')!;
 		expect(date.value).toBe(RENDERED_ON);
 	});

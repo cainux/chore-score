@@ -24,30 +24,6 @@ It SHALL, however, present the two weeks in the same order the display does, so 
 - **WHEN** the London date crosses into a new week
 - **THEN** the admin page's editable window advances to match the display, and the week that dropped off the display is no longer editable
 
-### Requirement: Marking today is the primary action
-
-The admin page SHALL present a dedicated control per child for today's day mark, distinct from the controls used to correct earlier dates. Those controls SHALL be reachable without scrolling on a phone-sized viewport and SHALL be the most prominent elements on the page, because marking today is the overwhelmingly common reason to open it.
-
-#### Scenario: Marking tonight off
-
-- **WHEN** a parent opens the admin page on a phone and wants to record that both children did everything today
-- **THEN** both today controls are visible without scrolling, and one selection per child completes the task
-
-#### Scenario: Today's control shows current state
-
-- **WHEN** a child's day mark for today is already earned
-- **THEN** that child's today control shows as earned, and selecting it clears the mark
-
-#### Scenario: Today's control follows the date
-
-- **WHEN** the London date changes while the page is open and the page is subsequently reloaded
-- **THEN** the today controls act on the new date
-
-#### Scenario: The today control names its date
-
-- **WHEN** the today controls are rendered
-- **THEN** each states the day it applies to prominently enough to be read without looking for it, rather than as secondary detail
-
 ### Requirement: A control submits the date it was rendered for
 
 Every day mark control SHALL submit the date it was rendered for. The server SHALL apply the submitted date and SHALL NOT substitute the current London date at the time the request arrives.
@@ -58,7 +34,7 @@ A rendered date can only fall behind the current date and never run ahead of it,
 
 #### Scenario: Tapping shortly after midnight
 
-- **WHEN** the page is rendered at 23:50 on a Saturday and the parent selects a today control at 00:20 on the Sunday
+- **WHEN** the page is rendered at 23:50 on a Saturday and the parent selects the control for that date at 00:20 on the Sunday
 - **THEN** the day mark is recorded against Saturday, the date the control was rendered for and displayed as
 
 #### Scenario: The server does not re-derive the date
@@ -77,7 +53,7 @@ Re-rendering also picks up day marks made by the other parent since the page was
 #### Scenario: Returning to a page from the previous day
 
 - **WHEN** a parent returns to an admin page that was rendered yesterday and has no unsaved task edits
-- **THEN** the page re-renders and its today controls act on the current date
+- **THEN** the page re-renders and its controls act on the current date
 
 #### Scenario: Unsaved task text is not discarded
 
@@ -116,11 +92,6 @@ Every editable date SHALL be an individually selectable control. Selecting a dat
 
 - **WHEN** a parent marks the wrong child and selects the same control again
 - **THEN** the mark is cleared and no residual record remains
-
-#### Scenario: Today is editable from either surface
-
-- **WHEN** today's mark is changed using the today control
-- **THEN** today's entry in the correction window reflects the same state, because both act on one underlying day mark
 
 ### Requirement: Past days within the window can be edited freely
 
@@ -194,7 +165,7 @@ The admin page SHALL let a parent edit each child's display name in place, in th
 
 Names SHALL follow the same rule as task text: an edit takes effect only on save, so a partially typed name is never published to the display. The page SHALL indicate when a name has unsaved changes.
 
-Name editing SHALL sit in the lower part of the page with the task editors rather than near the today controls, because renaming is occasional and marking today is not.
+Name editing SHALL sit in the lower part of the page with the task editors rather than near the day-mark controls, because renaming is occasional and marking a day is not.
 
 The field SHALL accept emoji by ordinary text entry, using the device keyboard, with no dedicated picker.
 
@@ -250,9 +221,9 @@ The admin page SHALL be designed for a phone-sized viewport as its primary targe
 - **WHEN** the admin page is opened at any supported viewport width
 - **THEN** all content fits horizontally and the page scrolls only vertically
 
-#### Scenario: Correction window stays reachable
+#### Scenario: The editable window is fully reachable
 
-- **WHEN** a parent scrolls past the today controls
+- **WHEN** a parent scrolls through the admin page
 - **THEN** every date in the two-week window is reachable and selectable for both children
 
 ### Requirement: The display is not editable

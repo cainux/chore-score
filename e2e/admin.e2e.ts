@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 const ADMIN_PASSWORD = 'dev-admin-password';
 
@@ -12,12 +12,16 @@ test.beforeEach(async ({ page }) => {
 	await expect(page).toHaveURL(/\/admin$/);
 });
 
-/** The today card for a child. */
-const todayCard = (page: Page, name: string) =>
-	page.locator('.today button').filter({ hasText: name });
-
 /** A correction-grid control, addressed the way a screen reader would. */
 const dayControl = (page: Page, label: string) => page.getByRole('button', { name: label });
+
+/** The correction-grid control for today's date, for a given child. */
+async function todayControl(page: Page, name: string): Promise<Locator> {
+	const heading = await page.getByRole('heading', { level: 1 }).textContent();
+	// "Sunday 2 August" -> the correction control reads "Alice, Sun 2 Aug".
+	const [weekday, day, month] = heading!.trim().split(' ');
+	return dayControl(page, `${name}, ${weekday.slice(0, 3)} ${day} ${month.slice(0, 3)}`);
+}
 
 test.describe('the page is laid out for a phone', () => {
 	test('does not scroll horizontally at 390px', async ({ page }) => {
@@ -41,13 +45,6 @@ test.describe('the page is laid out for a phone', () => {
 			}
 		}
 		expect(undersized).toEqual([]);
-	});
-
-	test('shows both today controls without scrolling', async ({ page }) => {
-		for (const name of ['Alice', 'Ben']) {
-			const box = await todayCard(page, name).boundingBox();
-			expect(box!.y + box!.height).toBeLessThanOrEqual(844);
-		}
 	});
 
 	test('offers both previews, labelled static and live', async ({ page }) => {
@@ -89,39 +86,19 @@ test.describe('the page is laid out for a phone', () => {
 
 test.describe('marking a day', () => {
 	test('toggles today on and off, and the change survives a reload', async ({ page }) => {
-		const card = todayCard(page, 'Alice');
-		const wasEarned = (await card.getAttribute('aria-pressed')) === 'true';
+		const cell = await todayControl(page, 'Alice');
+		const wasEarned = (await cell.getAttribute('aria-pressed')) === 'true';
 
-		await card.click();
-		await expect(card).toHaveAttribute('aria-pressed', String(!wasEarned));
+		await cell.click();
+		await expect(cell).toHaveAttribute('aria-pressed', String(!wasEarned));
 
 		await page.reload();
-		await expect(todayCard(page, 'Alice')).toHaveAttribute('aria-pressed', String(!wasEarned));
+		// The locator is lazy, so this is the same control resolved afresh.
+		await expect(cell).toHaveAttribute('aria-pressed', String(!wasEarned));
 
 		// Put it back, so the suite leaves the data where it found it.
-		await todayCard(page, 'Alice').click();
-		await expect(todayCard(page, 'Alice')).toHaveAttribute('aria-pressed', String(wasEarned));
-	});
-
-	test('shows today in both surfaces, because they are one underlying mark', async ({ page }) => {
-		const heading = await page.getByRole('heading', { level: 1 }).textContent();
-		// "Sunday 2 August" -> the correction control reads "Alice, Sun 2 Aug".
-		const [weekday, day, month] = heading!.trim().split(' ');
-		const label = `Alice, ${weekday.slice(0, 3)} ${day} ${month.slice(0, 3)}`;
-
-		const card = todayCard(page, 'Alice');
-		const gridCell = dayControl(page, label);
-
-		const before = await card.getAttribute('aria-pressed');
-		await expect(gridCell).toHaveAttribute('aria-pressed', before!);
-
-		await card.click();
-		await expect(card).not.toHaveAttribute('aria-pressed', before!);
-		// The correction grid followed, without a separate write.
-		await expect(gridCell).not.toHaveAttribute('aria-pressed', before!);
-
-		await card.click();
-		await expect(card).toHaveAttribute('aria-pressed', before!);
+		await cell.click();
+		await expect(cell).toHaveAttribute('aria-pressed', String(wasEarned));
 	});
 
 	test('marks a past day nine days ago exactly as it would today', async ({ page }) => {
@@ -285,7 +262,7 @@ test.describe('names and task lists', () => {
 
 		await page.reload();
 		await expect(page.locator('#name-alice')).toHaveValue('Alice 🎂');
-		await expect(todayCard(page, 'Alice 🎂')).toBeVisible();
+		await expect(page.getByRole('heading', { level: 3, name: 'Alice 🎂' })).toBeVisible();
 
 		await page.locator('#name-alice').fill('Alice');
 		await page.getByRole('button', { name: /^Save/ }).click();

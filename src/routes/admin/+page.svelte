@@ -82,50 +82,6 @@
 		<p class="error" role="alert">{toggleError}</p>
 	{/if}
 
-	<section class="today" aria-label="Today">
-		{#each data.children as child (child.id)}
-			{@const earned = earnedNow(child.id, data.today, child.todayEarned)}
-			<form
-				method="POST"
-				action="?/toggle"
-				use:enhance={() => {
-					const key = `${child.id} ${data.today}`;
-					optimistic.set(key, !earned);
-					toggleError = null;
-					return async ({ result, update }) => {
-						if (result.type === 'failure') {
-							optimistic.delete(key);
-							toggleError = 'That change did not save. Try again.';
-							return;
-						}
-						// Cleared only once the fresh data has landed. Dropping it first
-						// leaves a window where the control falls back to the stale
-						// server value, and a second tap inside that window submits the
-						// wrong prior state.
-						await update({ reset: false });
-						optimistic.delete(key);
-						// The live preview, if one is open in another tab. After the
-						// write is known to have landed and only then: nudging earlier
-						// is a race the preview loses, redrawing the old state and then
-						// never hearing about the real one (design.md D19).
-						notifyLive();
-					};
-				}}
-			>
-				<input type="hidden" name="childId" value={child.id} />
-				<input type="hidden" name="date" value={data.today} />
-				<input type="hidden" name="earned" value={String(earned)} />
-				<button type="submit" class="card" class:earned aria-pressed={earned}>
-					<span class="card-name">{child.name}</span>
-					<span class="card-mark" aria-hidden="true">{earned ? '★' : '○'}</span>
-					<span class="card-state">{earned ? 'done' : 'not yet'}</span>
-				</button>
-			</form>
-		{/each}
-	</section>
-
-	<h2>Fix a past day</h2>
-
 	<section class="corrections">
 		{#each data.children as child (child.id)}
 			<article>
@@ -155,8 +111,8 @@
 											toggleError = 'That change did not save. Try again.';
 											return;
 										}
-										// See the today card above: clear after, not before, and
-										// nudge the preview only once the write has landed.
+										// Clear after, not before, and nudge the preview only
+										// once the write has landed (see design.md D19).
 										await update({ reset: false });
 										optimistic.delete(key);
 										notifyLive();
@@ -319,53 +275,6 @@
 		margin: 0 0 0.25rem;
 	}
 
-	/* ---- Today ---------------------------------------------------------- */
-
-	.today {
-		display: flex;
-		gap: 0.75rem;
-	}
-
-	.today form {
-		flex: 1 1 0;
-	}
-
-	.card {
-		width: 100%;
-		/* Both cards fit above the fold at a 390px viewport, and marking today is
-		   one tap per child. */
-		height: 170px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		border: 2px solid #111111;
-		border-radius: 12px;
-		background: #ffffff;
-		font: inherit;
-		cursor: pointer;
-	}
-
-	.card.earned {
-		background: #111111;
-		color: #ffffff;
-	}
-
-	.card-name {
-		font-size: 1.1rem;
-		font-weight: 700;
-	}
-
-	.card-mark {
-		font-size: 2.5rem;
-		line-height: 1;
-	}
-
-	.card-state {
-		font-size: 0.9rem;
-	}
-
 	/* ---- Correction grid ------------------------------------------------- */
 
 	.corrections article {
@@ -447,7 +356,7 @@
 		border-radius: 6px;
 	}
 
-	button[type='submit']:not(.card):not(.day) {
+	button[type='submit']:not(.day) {
 		min-height: 44px;
 		font: inherit;
 		border: 1px solid #111111;

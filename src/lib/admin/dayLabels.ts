@@ -25,7 +25,7 @@ function parts(date: DateString) {
 }
 
 /**
- * `Saturday 1 August` — the today card's own heading.
+ * `Saturday 1 August` — the admin page's own `<h1>`.
  *
  * Loud rather than small print, because pinning the date to the control is only
  * half the fix (design.md D14). A parent tapping by muscle memory will not read

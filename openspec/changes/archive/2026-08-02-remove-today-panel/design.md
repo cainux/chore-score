@@ -56,3 +56,14 @@ flowchart LR
 
 - **[Risk]** A parent who relied on the cards' visual prominence without realizing it might momentarily lose their bearings. → **Mitigation**: none built in (D24) — the user who requested this change is the only user, and made that call directly. If it becomes friction, D24 names the fallback.
 - **[Risk]** `page.svelte.spec.ts`'s "submits the rendered date" test currently asserts specifically against `.today form` and would silently stop testing anything if not updated. → **Mitigation**: `tasks.md` calls this out explicitly as a rewrite, not a deletion, targeting today's cell in the grid instead.
+
+## What apply found
+
+`tasks.md` scoped the test rewrite to `page.svelte.spec.ts` alone. It undercounted: the Playwright suite had the deeper dependency on `.today`, not the unit test.
+
+- `e2e/admin.e2e.ts` had a `todayCard` helper used by five tests, plus a test asserting the cards' own reachability claim ("shows both today controls without scrolling") and a test asserting cross-surface consistency between the card and the grid ("shows today in both surfaces, because they are one underlying mark"). Both assertions are about the exact requirement this change removes from the spec, so both tests were deleted rather than adapted — there is no replacement behavior for either to assert. The remaining `todayCard`-dependent tests (the toggle-and-reload test, and the emoji-name test's visibility check) were rewritten against a new `todayControl` helper that locates today's cell in the correction grid by its accessible label, derived from the page's own `<h1>` heading the same way two other tests in the file already did.
+- `e2e/preview.e2e.ts` had one more instance of the same pattern, inline rather than via a shared helper, in the test proving the live preview follows an edit made in another tab. Given its own copy of the same `todayControl` helper and rewritten the same way.
+
+None of this changed the shape of the change — it is still a pure UI deletion with no new mechanism — but it means the actual test-update surface was two e2e files plus one unit spec, not the one file `tasks.md` named.
+
+The spec sync at archive time found a similar undercount in the delta itself: two requirements the proposal never listed as modified — "A control submits the date it was rendered for" and "The page refreshes when it returns after the date changes" — used the phrase "today control(s)" in their own scenario text, purely as a name for the control rendered for today's date. Nothing about their behavior changed, but the phrase stopped meaning anything once the dedicated control was gone, so both were added to the delta's MODIFIED Requirements with that one phrase reworded ("the control for that date" / "its controls") and nothing else touched.

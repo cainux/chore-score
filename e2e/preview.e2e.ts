@@ -16,6 +16,16 @@ async function signIn(page: Page) {
 /** Alice's row in the current week — the grid is week-major. */
 const aliceCurrentWeek = (page: Page) => page.locator('.row').first();
 
+/** The admin page's correction-grid control for today's date, for a given child. */
+async function todayControl(page: Page, name: string) {
+	const heading = await page.getByRole('heading', { level: 1 }).textContent();
+	// "Sunday 2 August" -> the correction control reads "Alice, Sun 2 Aug".
+	const [weekday, day, month] = heading!.trim().split(' ');
+	return page.getByRole('button', {
+		name: `${name}, ${weekday.slice(0, 3)} ${day} ${month.slice(0, 3)}`
+	});
+}
+
 test.describe('the live preview renders the panel canvas', () => {
 	test.beforeEach(async ({ page }) => {
 		await signIn(page);
@@ -71,10 +81,10 @@ test.describe('the live preview follows the admin page', () => {
 		const stars = aliceCurrentWeek(preview).locator('.cell svg');
 		const before = await stars.count();
 
-		const card = admin.locator('.today button').filter({ hasText: 'Alice' });
-		const wasEarned = (await card.getAttribute('aria-pressed')) === 'true';
-		await card.click();
-		await expect(card).toHaveAttribute('aria-pressed', String(!wasEarned));
+		const cell = await todayControl(admin, 'Alice');
+		const wasEarned = (await cell.getAttribute('aria-pressed')) === 'true';
+		await cell.click();
+		await expect(cell).toHaveAttribute('aria-pressed', String(!wasEarned));
 
 		// No reload, no interaction with the preview at all: the nudge crosses the
 		// BroadcastChannel and the preview re-reads the server (design.md D17).
@@ -82,7 +92,7 @@ test.describe('the live preview follows the admin page', () => {
 
 		// Put it back, so the next test in the shared database starts where this
 		// one found things.
-		await card.click();
+		await cell.click();
 		await expect(stars).toHaveCount(before);
 
 		await admin.close();

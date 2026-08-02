@@ -38,6 +38,47 @@ The admin page SHALL be designed for a phone-sized viewport as its primary targe
 - **WHEN** a parent scrolls through the admin page
 - **THEN** every date in the two-week window is reachable and selectable for both children
 
+### Requirement: A control submits the date it was rendered for
+
+Every day mark control SHALL submit the date it was rendered for. The server SHALL apply the submitted date and SHALL NOT substitute the current London date at the time the request arrives.
+
+This makes the page's behaviour match what the parent saw. A page rendered before midnight and used shortly after it records the day that was on screen, which is the day the parent was thinking about, rather than the one that has just begun.
+
+A rendered date can only fall behind the current date and never run ahead of it, so a control rendered as today can never submit a future date.
+
+#### Scenario: Tapping shortly after midnight
+
+- **WHEN** the page is rendered at 23:50 on a Saturday and the parent selects the control for that date at 00:20 on the Sunday
+- **THEN** the day mark is recorded against Saturday, the date the control was rendered for and displayed as
+
+#### Scenario: The server does not re-derive the date
+
+- **WHEN** a toggle request arrives carrying a date
+- **THEN** the server acts on that date, having checked it is within the editable window and not in the future
+
+### Requirement: The page refreshes when it returns after the date changes
+
+When the admin page becomes visible again after being left, and the current London date no longer matches the date the page was rendered for, the page SHALL re-render so that its controls act on the current date.
+
+The page SHALL NOT re-render while any task list field holds unsaved changes, because doing so would discard text the parent has typed.
+
+Re-rendering also picks up day marks made by the other parent since the page was loaded. Where JavaScript is unavailable the page SHALL simply remain as rendered, which is safe because its controls carry their own dates.
+
+#### Scenario: Returning to a page from the previous day
+
+- **WHEN** a parent returns to an admin page that was rendered yesterday and has no unsaved task edits
+- **THEN** the page re-renders and its controls act on the current date
+
+#### Scenario: Unsaved task text is not discarded
+
+- **WHEN** a parent returns to a stale admin page on which a task field has been edited but not saved
+- **THEN** the page does not re-render and the typed text is preserved
+
+#### Scenario: Returning on the same day
+
+- **WHEN** a parent returns to an admin page rendered earlier the same day
+- **THEN** no re-render is required
+
 ### Requirement: Child names are editable alongside their task lists
 
 The admin page SHALL let a parent edit each child's display name in place, in the same per-child block as that child's task list, saved by the same explicit save action.
