@@ -1,11 +1,14 @@
 # Deploying
 
-Everything below is for the **preview** deployment, which is task 8.1 in
-`openspec/changes/add-chore-chart/tasks.md`. Promoting to production is 8.5, and
-deliberately comes after the chart has been checked on the physical panel.
+**Production is <https://chores.oha.me/>, and `/display` on it is what the TRMNL
+plugin captures.** The custom domain is declared in `wrangler.jsonc`, so a deploy
+reproduces it; do not remove that `routes` entry, or the next deploy will take
+the domain down and the panel will go on showing its last good capture as though
+nothing were wrong.
 
-Run these yourself — they publish to a real Cloudflare account and set live
-secrets, so nothing here is automated.
+The steps below were written for the first deployment (task 8.1) and still
+describe every part of it. Run them yourself — they publish to a real Cloudflare
+account and set live secrets, so nothing here is automated.
 
 ## Once, before the first deploy
 
@@ -91,15 +94,17 @@ pnpm run deploy
 `deploy` builds first, because `wrangler.jsonc` points `main` at the adapter's
 output and a stale build would deploy silently.
 
-Wrangler prints the Worker URL when it finishes. That URL is what task 8.2 puts
-into the TRMNL Screenshot plugin.
+Wrangler prints the Worker URL when it finishes, along with the custom domain
+from `routes`. The chart is served at `https://chores.oha.me/display`; the
+`workers.dev` URL serves the same Worker and is useful for checking a deploy
+without going through the domain.
 
 ## Checking the deployment
 
 Substitute your Worker URL and the display key you set.
 
 ```sh
-WORKER_URL=https://chore-score.<your-subdomain>.workers.dev
+WORKER_URL=https://chores.oha.me
 DISPLAY_KEY=<the value you set>
 
 # The display route rejects anything without the header.
@@ -142,16 +147,26 @@ If the plan in use turns out not to support custom headers, the fallback in
 design.md is an unguessable path segment instead — weaker, but adequate for a
 children's chore chart.
 
-Leave the refresh interval alone for now. It is settled in task 8.5, together
-with the render stamp: if the panel sleeps overnight, a healthy chart shows last
-night's time every morning, and a freshness signal that looks stale every
-morning stops being read.
+Set the refresh interval to **15 minutes**. That is chosen on responsiveness,
+not battery: a parent ticks a square in the evening and a child wants to see the
+star appear, and at hourly they may have stopped caring before the wall catches
+up.
+
+**If you configure an overnight sleep, it must end before the first person looks
+at the chart.** The render stamp is the only thing that can tell you the panel
+has died (design.md D10), and its date is the part that reads as wrong without
+any arithmetic. Wake the panel after midnight and before the household is up and
+the date on the wall is always today. Sleep through the morning instead and a
+healthy chart shows yesterday every day, which trains everyone to ignore the one
+signal that would catch a real fault. If battery ever becomes the constraint,
+lengthen the overnight sleep rather than slowing the daytime interval — nobody
+reads the chart at 3am.
 
 ## What to expect on the first render
 
-Both children will show a **faint trophy for last week**, because there is no
-data for it. That is correct, not a fault, and it clears itself within seven
-days.
+Both trophy slots will be **empty**, because last week has no data. A trophy
+appears only on a complete week (design.md D13), so that is simply the chart
+being right rather than something to explain away.
 
 ## Rolling back
 

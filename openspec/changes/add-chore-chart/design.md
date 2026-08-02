@@ -305,7 +305,15 @@ _Why the time as well:_ it is the only thing that catches same-day staleness, wh
 
 _Alternative considered:_ marking today's column on the grid, so that something on the chart must move every day. Rejected as an addition rather than a replacement — it does the same job less directly and the canvas is tight. Worth revisiting at step 8.4 if the stamp reads poorly on the panel.
 
-_Open interaction:_ if TRMNL sleeps overnight to save battery, a glance at 8am legitimately shows last night's stamp. That is not a fault, but a freshness signal that looks stale every morning stops being read. Settle the refresh interval and the stamp together at step 8.5.
+_Interaction with the refresh interval, settled at step 8.5:_ if TRMNL sleeps overnight to save battery, a glance at 8am legitimately shows last night's stamp. That is not a fault, but a freshness signal that looks stale every morning stops being read.
+
+The resolution comes out of this decision's own reasoning rather than out of a change to it. The **date** is the part that reads as wrong with no arithmetic; the time only catches same-day staleness. So the constraint on the panel is not "never sleep" but:
+
+> **The panel must refresh at least once after midnight, before anyone first looks at it.**
+
+Satisfy that and the date on the wall is always today, the chart never reads as broken, and the stamp needs no change. The interval is **15 minutes**, chosen on responsiveness rather than battery: a parent ticks the square in the evening and a child wants to see the star, and at hourly they may have stopped caring before the wall catches up. If battery becomes the binding constraint, the lever is a longer overnight sleep, not a slower daytime interval — nobody reads the chart at 3am.
+
+_The alternative if that constraint cannot be met:_ drop the time from the stamp and keep `updated Sat 2 Aug`. A legitimately old clock then cannot cry wolf. Not taken, because it costs the same-day staleness signal to solve a problem an early wake time solves for free.
 
 ### D11. The layout is fixed at two children; the data layer is not
 

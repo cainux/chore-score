@@ -8,6 +8,16 @@
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
 	},
+	// The production URL, and what the TRMNL plugin is pointed at.
+	//
+	// Declared here rather than left to the dashboard, where it was originally
+	// created. Cloudflare's guidance is that Wrangler overrides dashboard-set
+	// routes on the next deploy with whatever the config says — and what this
+	// config used to say was nothing. A deploy could therefore have taken the
+	// custom domain away, which on an e-ink panel is the worst kind of breakage:
+	// the wall keeps showing the last good capture and nothing announces the
+	// fault (design.md D10).
+	"routes": [{ "pattern": "chores.oha.me", "custom_domain": true }],
 	"d1_databases": [
 		{
 			"binding": "DB",
