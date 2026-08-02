@@ -55,7 +55,7 @@ Established empirically against `@cloudflare/vitest-pool-workers` 0.20.1, becaus
 - **Isolation is per file, not per test.** Each spec file starts against a completely empty database — no tables at all, not even the `d1_migrations` bookkeeping. Two tests in the same file share whatever the earlier one left behind.
 - **`reset()` from `cloudflare:test` is a wipe, not a truncate.** It drops the schema along with the rows, so a test that runs after it sees an empty `sqlite_master`.
 
-So a D1 test can assume nothing on entry, and the schema has to be put there by the test itself. The convention is therefore a `beforeEach` that calls `reset()` and then reapplies the migrations, giving every test empty tables that actually exist.
+So a D1 test can assume nothing on entry, and the schema has to be put there by the test itself. `withSchema()` in `src/lib/server/db/testing.ts` is that convention: a `beforeEach` calling `reset()` and then `applyD1Migrations()`, which gives every test empty tables that actually exist. Call it once at the top of any `describe` that touches D1. The migration SQL is read in Node by `vitest.workers.config.ts` and handed across via `provide`/`inject`, because workerd has no filesystem to read it from.
 
 ## Configuration notes
 
