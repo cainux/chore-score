@@ -6,14 +6,11 @@
 			"env": {},
 			"args": ["-y", "@sveltejs/mcp"]
 		},
-        "playwright": {
-          "type": "stdio",
-          "command": "npx",
-          "args": [
-            "@playwright/mcp@latest",
-			"--browser", "chromium"
-          ],
-          "env": {}
-        }
+		"playwright": {
+			"type": "stdio",
+			"command": "npx",
+			"args": ["@playwright/mcp@latest", "--browser", "chromium"],
+			"env": {}
+		}
 	}
 }

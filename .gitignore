@@ -23,3 +23,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 # Playwright
 test-results
+
+# Claude Code — per-machine local settings, written by the tool
+.claude/settings.local.json
