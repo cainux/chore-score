@@ -115,69 +115,67 @@ The display SHALL use one single sticker shape for every earned day. It SHALL NO
 - **WHEN** a child has earned all 7 days of a week
 - **THEN** all 7 squares show the identical sticker shape
 
-### Requirement: The trophy shows whether a week was won, is still winnable, or is lost
+### Requirement: A trophy marks a complete week, and nothing marks an incomplete one
 
-Every week row SHALL end with a trophy in one of three states, so that the slot is never empty and the row rhythm never changes:
+A week row SHALL end with a trophy when and only when the child earned all 7 of that week's dates. An incomplete week SHALL show an empty slot — there is no partial, hollow or faint trophy, and no state that depends on today.
 
-- **Won** — the week is complete. A solid, filled trophy in dark grey.
-- **Still winnable** — the week is in progress and no date before today is unmarked. A hollow outline trophy in dark grey.
-- **Lost** — some date before today is unmarked. The same hollow outline, in light grey.
+The trophy SHALL be drawn solid in the same black as the day stickers. It is the summary of a row of black stars and SHALL NOT read as fainter than the days that earned it, at viewing distance or after 2-bit conversion.
 
-The distinction between won and not-won SHALL be carried by fill rather than by grey level, because fill survives viewing distance and 2-bit conversion where grey level does not. A lost week SHALL NOT be capable of being mistaken for a won one at a glance.
-
-The distinction between still winnable and lost MAY rest on grey level alone, because that question is asked deliberately at close range rather than absorbed in passing.
+The slot's width SHALL be reserved whether or not a trophy occupies it, so that an incomplete week does not shift the columns beside it.
 
 Both the previous week and the current week SHALL use this treatment.
 
 #### Scenario: Previous week completed
 
 - **WHEN** a child earned all 7 days of the previous week
-- **THEN** a solid filled trophy appears at the end of that child's previous-week row
+- **THEN** a solid black trophy appears at the end of that child's previous-week row
 
-#### Scenario: Current week in progress and unbroken
+#### Scenario: Current week in progress
 
 - **WHEN** it is Thursday and a child has earned every day so far this week
-- **THEN** a hollow dark trophy appears on the current-week row, indicating the week can still be won
+- **THEN** the current-week row's trophy slot is empty, because the week is not yet complete
 
-#### Scenario: Current week already lost
-
-- **WHEN** it is Thursday and a child has no day mark for Tuesday
-- **THEN** a hollow faint trophy appears on the current-week row
-
-#### Scenario: Today unmarked does not change the trophy
-
-- **WHEN** a child has earned every date before today this week and today has no day mark yet
-- **THEN** the trophy remains in the still-winnable state and does not change to lost
-
-#### Scenario: A lost past week keeps a faint trophy
+#### Scenario: An incomplete past week shows nothing
 
 - **WHEN** a child missed one or more days of the previous week
-- **THEN** a hollow faint trophy appears at the end of that row rather than an empty slot
+- **THEN** that row's trophy slot is empty rather than holding a faint trophy
 
-#### Scenario: Won is distinguishable from lost at a distance
+#### Scenario: An empty slot does not move the chart
+
+- **WHEN** one week row has a trophy and another does not
+- **THEN** the day squares and week blocks stay in the same positions in both rows
+
+#### Scenario: The trophy survives the panel
 
 - **WHEN** the rendered chart is reduced to four grey levels and viewed from across a room
-- **THEN** a won week's solid trophy is distinguishable from a lost week's hollow one
+- **THEN** a trophy is unmistakably present and as strong as the stars in its row
 
-### Requirement: Each child's task bullets appear above the grid
+### Requirement: Each child's tasks appear above the grid
 
-The display SHALL render each child's current task list as a bulleted block above the sticker grid, with the two children's blocks laid out side by side and each block labelled with its child's name.
+The display SHALL render each child's current task list above the sticker grid, one task per line, with the two children's blocks laid out side by side and each block labelled with its child's name.
+
+Tasks SHALL be drawn as plain lines with no bullet marker and no indent. On the panel a column of markers reads as clutter beside the star grid, and the indent costs column width that a wrapping task spends on a further line. The line break alone separates one task from the next.
 
 #### Scenario: Tasks are shown per child
 
 - **WHEN** each child has a different task list
-- **THEN** each child's own bullets appear under that child's name
+- **THEN** each child's own tasks appear under that child's name
 
-A bullet too long for the width of its block SHALL wrap onto a further line rather than being cut off mid-word. Truncating a bullet to `(thumb cr…` conveys less than omitting it, because it reads as a fault in the chart rather than as an instruction.
+#### Scenario: No marker precedes a task
+
+- **WHEN** the display renders a child's task list
+- **THEN** each task begins at the left edge of its block with no bullet, dash or other marker before it
+
+A task too long for the width of its block SHALL wrap onto a further line rather than being cut off mid-word. Truncating a task to `(thumb cr…` conveys less than omitting it, because it reads as a fault in the chart rather than as an instruction.
 
 #### Scenario: A child with an empty task list
 
 - **WHEN** a child has no task list set
-- **THEN** that child's block renders with its heading and no bullets, and the page layout remains intact
+- **THEN** that child's block renders with its heading and no task lines, and the page layout remains intact
 
-#### Scenario: A bullet longer than its column
+#### Scenario: A task longer than its column
 
-- **WHEN** a bullet is too long to fit on one line of its block
+- **WHEN** a task is too long to fit on one line of its block
 - **THEN** it continues onto the next line with its text complete, rather than being truncated or marked with an ellipsis
 
 ### Requirement: The layout targets the TRMNL OG panel

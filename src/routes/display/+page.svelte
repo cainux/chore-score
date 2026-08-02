@@ -82,8 +82,15 @@
 								{/if}
 							</span>
 						{/each}
+						<!--
+							The column is always here; the trophy is not. It is drawn only
+							for a week that was won, and the reserved width is what keeps
+							the two week blocks aligned when it is not (design.md D13).
+						-->
 						<span class="trophy-col">
-							<Trophy state={row.weeks[week].trophy} />
+							{#if row.weeks[week].trophy}
+								<Trophy />
+							{/if}
 						</span>
 					</div>
 				{/each}
@@ -148,9 +155,15 @@
 		overflow: hidden;
 	}
 
+	/* Still a list in the markup, but drawn without markers or indent. On the
+	   panel the bullet glyphs added a column of dots that read as clutter next to
+	   the star grid below, and cost 22px of the 376px column — which a wrapping
+	   bullet spends on a second line (design.md D12). Each task simply gets its
+	   own line, which is all the marker was conveying. */
 	.task-block ul {
 		margin: 0;
-		padding-left: 22px;
+		padding-left: 0;
+		list-style: none;
 		/* Exactly 8 lines at the line height below. A whole number of them, so a
 		   clipped list ends on a line that is fully drawn rather than on one
 		   sliced through the middle. */

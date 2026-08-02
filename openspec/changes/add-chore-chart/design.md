@@ -150,25 +150,26 @@ The display page is not responsive. It is a fixed 800×480 canvas, because it ha
 │ 16px padding                                                         │
 │  ┌ 376 px ──────────────────┐  ┌ 376 px ──────────────────┐          │
 │  │ ALICE                    │  │ BEN                      │          │  task
-│  │ • Piano 15 mins daily    │  │ • Piano 10 mins daily    │          │  blocks
-│  │ • Reading log signed     │  │ • Spellings              │          │  ~180px
-│  │ • Bins out Tuesday       │  │ • Tidy room              │          │
+│  │ Piano 15 mins daily      │  │ Piano 10 mins daily      │          │  blocks
+│  │ Reading log signed       │  │ Spellings                │          │  230px
+│  │ Bins out Tuesday         │  │ Tidy room                │          │
 │  └──────────────────────────┘  └──────────────────────────┘          │
 │  ──────────────────────────────────────────────────────────────────  │
 │                                                                      │
 │        27 JUL–2 AUG                   LAST WEEK                      │  20px
 │        M  T  W  T  F  S  S            M  T  W  T  F  S  S            │  22px
 │  ┌────┬──┬──┬──┬──┬──┬──┬──┬──┐ ┌──┬──┬──┬──┬──┬──┬──┬──┐            │
-│  │Alice│★│★ │★ │· │· │· │▽ │  │ │★ │★ │★ │  │★ │★ │★ │▼ │            │  72px
+│  │Alice│★│★ │★ │· │· │· │  │  │ │★ │★ │★ │★ │★ │★ │★ │▼ │            │  72px
 │  ├────┼──┼──┼──┼──┼──┼──┼──┼──┤ ├──┼──┼──┼──┼──┼──┼──┼──┤            │
-│  │Ben │★ │★ │  │· │· │· │▫ │  │ │★ │  │★ │★ │★ │  │★ │▫ │            │  72px
+│  │Ben │★ │★ │  │· │· │· │  │  │ │★ │  │★ │★ │★ │  │★ │  │            │  72px
 │  └────┴──┴──┴──┴──┴──┴──┴──┴──┘ └──┴──┴──┴──┴──┴──┴──┴──┘            │
 │   80px  └── 7 × 42px ──┘  32px       └── 7 × 42px ──┘  32px          │
 │                                        updated Sat 2 Aug 20:14       │  16px
 └──────────────────────────────────────────────────────────────────────┘
    total grid width: 80 + 294 + 32 + 20 + 294 + 32 = 752 px
    total height used: ~386 px of 480 — slack goes to the task blocks
-   trophy glyphs: ▼ solid = won   ▽ outline = still winnable   ▫ faint = lost
+   trophy: ▼ solid black on a complete week, empty slot otherwise (D13).
+           Alice's last week is the only complete one here.
 ```
 
 Vertical budget out of 480 px:
@@ -190,7 +191,9 @@ The list is exactly **8 line boxes of 25px**, not 200px of whatever fits. A whol
 
 The stamp's band is **reserved, not shared**. The task blocks grow into the slack, so if the stamp merely sat below them a long enough task list would push it off the canvas — losing the freshness signal at the exact moment the chart is most likely to be wrong. Absolute positioning against the bottom edge is the simplest way to make that impossible.
 
-That is **8 lines per child**, at 376 px wide — not 8 bullets. A bullet wraps rather than being cut off, and at 20px a line holds about 38 characters, so a real entry like `Exercise 11 part 2 - hands together (thumb crossover)` takes two of the eight. Hence **6 bullets comfortably, 8 if every one of them is short**. Surplus is clipped, and the warning that a list has passed this point lives on the admin page (D12).
+That is **8 lines per child**, at the full 376 px — not 8 bullets. An entry wraps rather than being cut off, and at 20px a line holds about 38 characters, so a real one like `Exercise 11 part 2 - hands together (thumb crossover)` takes two of the eight. Hence **6 bullets comfortably, 8 if every one of them is short**. Surplus is clipped, and the warning that a list has passed this point lives on the admin page (D12).
+
+The column is the full 376 because no marker is drawn and there is no indent (D12); the 22px that the bullet gutter used to take is now text.
 
 _Why wrapped and not cut off:_ the first panel capture ended a bullet `(thumb cr…`, which tells a child less than nothing — worse than not showing the entry, because it looks like the chart is broken. Clipping whole lines off the bottom at least leaves everything it does show intact and readable.
 
@@ -221,14 +224,16 @@ stateDiagram-v2
     end note
 ```
 
-| Element                                            | Level      | Hex       |
-| -------------------------------------------------- | ---------- | --------- |
-| Stickers, names, task text                         | black      | `#000000` |
-| Weekday letters, week labels, won and winnable trophies | dark grey  | `#555555` |
-| Grid lines, future-day dots, lost trophy, render stamp | light grey | `#AAAAAA` |
-| Background, missed squares                         | white      | `#FFFFFF` |
+| Element                                     | Level      | Hex       |
+| ------------------------------------------- | ---------- | --------- |
+| Stickers, trophies, names, task text        | black      | `#000000` |
+| Weekday letters, week labels, render stamp  | dark grey  | `#555555` |
+| Grid lines, future-day dots                 | light grey | `#AAAAAA` |
+| Background, missed squares                  | white      | `#FFFFFF` |
 
 Sticking to values near the panel's four actual levels keeps the device's own quantisation from dithering solid areas into texture.
+
+The split is by role, not by prominence: **black is for what a child earned, grey is for the structure it sits in.** The panel enforced this twice — the render stamp moved up from `#AAA` because it dithered into a smudge (D10), and the trophy moved down to `#000` because at `#555` the reward read as fainter than the stars that earned it (D13). Nothing in the first column is a decoration; nothing in the others is an achievement.
 
 ### D9. Three test runtimes, because the risky assumption only exists in one of them
 
@@ -339,7 +344,11 @@ _Why the repeat exception:_ found while implementing. Stripping unconditionally 
 
 _Why the asterisk exception:_ see the emphasis rule below. `* Piano` is a list item and `*Piano*` is italic, and whitespace is what tells them apart.
 
-_Why these two rules specifically:_ both correct near-certain human behaviour. A parent who leaves a blank line between entries would otherwise get an empty bullet on a canvas with no room for one, and a parent who types `- Piano` — which is simply how people write lists — would otherwise get `• - Piano` on the kitchen wall, where nobody can fix it without walking to their phone.
+_Why these two rules specifically:_ both correct near-certain human behaviour. A parent who leaves a blank line between entries would otherwise get an empty bullet on a canvas with no room for one, and a parent who types `- Piano` — which is simply how people write lists — would otherwise get a stray dash on the kitchen wall, where nobody can fix it without walking to their phone.
+
+**No marker is drawn.** The display renders one task per line with no bullet glyph and no indent — the line break is the whole separator. Two things from the panel: a column of dots beside the star grid read as clutter competing with the only marks on the chart that mean anything, and the 22px indent was width a wrapping task spent on a second line, out of a 376px column and a budget of 8 lines total.
+
+Note this makes the stripping rule above _more_ load-bearing, not less. With a marker drawn, a typed `- Piano` produced a visibly doubled `• - Piano` that read as a formatting fault. Without one, it produces `- Piano`, which reads as text the parent meant to type — wrong in a way nobody would think to report.
 
 **Inline emphasis is read; nothing else is.** `*italic*`, `**bold**`, `***both***`, and that is the whole grammar.
 
@@ -362,47 +371,39 @@ Emphasis is applied when a bullet is drawn, not when the text is split into line
 
 The warning does not block saving — a parent may knowingly keep a longer list and accept the clipping.
 
-### D13. The trophy has three states, distinguished by fill before grey level
+### D13. The trophy means one thing: this week was won
 
-The trophy is the only forward-looking thing on the chart, and showing it only once won made it invisible during the entire week in which it could motivate anything. It now always occupies the slot, in one of three states:
+A trophy appears when a child earns all 7 dates of a week, drawn solid in the same `#000` as the stars. An incomplete week shows an empty slot.
 
 ```mermaid
 stateDiagram-v2
     direction LR
-    [*] --> Winnable: week begins, nothing missed yet
-    Winnable --> Lost: a date before today ends unmarked
-    Winnable --> Won: all 7 dates marked
-    Lost --> Won: parent backfills every missing date
-    Won --> Lost: a mark is cleared
+    [*] --> NoTrophy: any date unmarked
+    NoTrophy --> Trophy: the 7th date is marked
+    Trophy --> NoTrophy: a mark is cleared
 
-    note right of Won
-      solid fill, #555
+    note right of Trophy
+      solid #000, same ink as the stars
     end note
-    note right of Winnable
-      hollow outline, #555
-    end note
-    note right of Lost
-      hollow outline, #AAA
+    note right of NoTrophy
+      empty slot, width still reserved
     end note
 ```
 
-_Why fill carries won-versus-not:_ grey level is the first thing viewing distance destroys and the first thing 2-bit conversion mangles. A lost week reading as a won one is the worst possible misread, so that distinction rests on silhouette — solid against hollow — which survives both. Winnable versus lost may rest on level alone, because that question is asked deliberately at close range rather than absorbed in passing.
+**This reverses an earlier three-state design, and the panel is what reversed it.** The trophy used to occupy the slot always: solid `#555` for won, hollow `#555` for still winnable, hollow `#AAA` for lost. The argument was that a trophy shown only once won is invisible during the entire week in which it could motivate anything. That argument was made looking at a browser.
 
-_The strictly-before-today rule is load-bearing._ "Lost" means a date **before** today is unmarked. Today does not count against the week until it is over. Defining it as "any unmarked date up to and including today" would make the trophy flicker daily — lost all day, quietly revived after bedtime when neither child is looking:
+On the panel it did not hold, for two reasons found in the same glance:
 
-```
-  Wednesday morning   today unmarked → LOST     faint
-  Wednesday 8pm       parent ticks   → WINNABLE dark
-  Thursday morning    today unmarked → LOST     faint
-```
+- **A hollow trophy does not read as a trophy.** At 26px, reduced to four grey levels and seen from across a kitchen, the outline lost its handles into the `#AAA` grid rule beside it and became a small grey smear. It was not a faint version of the reward — it was noise in the slot where the reward goes.
+- **`#555` was too light for the won one.** Sitting at the end of a row of solid black stars, the mark that *summarises* seven earned days read as the faded thing in the row. The reward looked weaker than the days that earned it. It is now `#000`, and the rule generalises: **anything on this chart that stands for an achievement is black.** Grey is for structure — rules, labels, the stamp.
 
-Note this is deliberately **different** from how a day square resolves, where today unmarked renders as missed (D7). Same data, two questions, two rules. The natural implementation reuses the square-state resolver and gets the flicker, so the two must stay separate.
+_What is lost:_ the forward-looking signal. There is now nothing on the chart that says "you can still do this". Accepted, because the row of stars already carries it — five stars and two empty squares says the same thing more directly than an outline of a cup does, and it says it in the shapes the chart has already taught the reader.
 
-_Consequences worth having:_ the trophy slot is never empty, so the row rhythm never changes and the layout has one less case. And backfilling last week's final missing day now fills a faint trophy in solid, rather than conjuring one out of an empty slot.
+_What is gained beyond legibility:_ every rule about *today* disappears from the trophy. The three-state version needed a strictly-before-today rule, deliberately different from how a day square resolves (D7), purely to stop the trophy flickering — lost all day, quietly revived after bedtime when neither child is looking. Two questions, two rules, one of which existed only to correct a presentation artefact. Completion asks nothing about today, so it is now `all 7 marked` and nothing else, and the flicker case cannot arise.
 
-_Trade-off accepted:_ a lost past week keeps a faint trophy rather than an empty slot, which is the closest thing on the chart to a negative marking. Chosen for consistency — nothing ever vanishes from the wall. The faintness is what keeps it from reading as a telling-off.
+_The slot's width is still reserved_ whether or not it holds anything, so an incomplete week does not slide the columns beside it on a canvas with fixed positions.
 
-_Cosmetic note for rollout:_ on the very first render, last week has no data, so both children show a faint trophy for a week that was never played. It clears itself within seven days. Worth knowing before step 8.6 so it is not mistaken for a fault.
+_Rollout note, now obsolete:_ the previous design meant both children showed a faint trophy for last week on the very first render, before there was any data. Empty is the correct first render, so there is nothing to warn about at step 8.6.
 
 ### D14. A control submits the date it was rendered for
 

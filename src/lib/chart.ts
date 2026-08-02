@@ -12,17 +12,6 @@ import type { DateString } from './dates';
 export type SquareState = 'earned' | 'missed' | 'not-yet';
 
 /**
- * How one week's trophy renders (design.md D13).
- *
- * - `won` — all 7 dates marked. Solid fill.
- * - `winnable` — nothing before today is unmarked. Hollow, dark.
- * - `lost` — some date before today is unmarked. Hollow, faint.
- *
- * The slot is never empty, so the row rhythm never changes.
- */
-export type TrophyState = 'won' | 'winnable' | 'lost';
-
-/**
  * Resolves one day square.
  *
  * Today counts as missed when unmarked, not as not-yet. The day is happening;
@@ -35,40 +24,29 @@ export function squareState(date: DateString, today: DateString, earned: boolean
 }
 
 /**
- * Resolves one week's trophy.
+ * Whether a week earned its trophy: all 7 of its dates marked (design.md D13).
  *
- * **Deliberately not built on {@link squareState}, and not the same rule.**
- * A week is lost when a date *strictly before* today is unmarked; today does
- * not count against it until it is over. Reusing the square resolver — where
- * today unmarked reads as missed — would make the trophy flicker every single
- * day:
+ * **There is no notion of today here, and that is the whole point.** This
+ * started as a three-state rule — won, still winnable, lost — which needed
+ * today to say whether an unmarked date was a failure or simply hadn't happened
+ * yet, and needed a *different* today rule from {@link squareState} to stop the
+ * trophy flickering daily. The panel settled it: a hollow trophy did not read as
+ * a trophy across a kitchen, so a week now either shows one or shows nothing,
+ * and every question that needed today went with it.
  *
- * ```
- *   Wednesday morning   today unmarked → lost      faint
- *   Wednesday 8pm       parent ticks   → winnable  dark
- *   Thursday morning    today unmarked → lost      faint
- * ```
- *
- * Lost all day, quietly revived after bedtime when neither child is looking,
- * which is precisely when the trophy is supposed to be doing its job. Same
- * data, two questions, two rules.
+ * The 7-date guard stays. A short week silently returning `true` on `every` over
+ * an empty array is exactly the kind of wrong that a wall chart displays
+ * confidently for a week before anyone notices.
  */
-export function trophyState(
+export function weekComplete(
 	dates: DateString[],
-	today: DateString,
 	isEarned: (date: DateString) => boolean
-): TrophyState {
+): boolean {
 	if (dates.length !== 7) {
 		throw new Error(`a week is 7 dates, got ${dates.length}`);
 	}
 
-	// Complete takes precedence over both other states, including for a week
-	// entirely in the future that nobody could have marked yet.
-	if (dates.every(isEarned)) return 'won';
-
-	// Strictly before today. A week wholly in the past therefore has every date
-	// examined and can only come out won or lost, never winnable.
-	return dates.some((date) => date < today && !isEarned(date)) ? 'lost' : 'winnable';
+	return dates.every(isEarned);
 }
 
 /**

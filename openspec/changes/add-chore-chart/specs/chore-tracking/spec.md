@@ -154,38 +154,26 @@ The system SHALL only report the current week as complete once all 7 of its date
 - **WHEN** it is Wednesday and a child has earned Monday, Tuesday and Wednesday
 - **THEN** the current week is reported as not complete, and Thursday through Sunday are reported as not yet occurred
 
-### Requirement: A week is winnable until a completed day is missed
+### Requirement: Week completion asks nothing about the current date
 
-The system SHALL report, for each child and week, whether that week can still be completed. A week SHALL be reported as **still winnable** when every date in it that falls strictly before the current London date carries a day mark. A week SHALL be reported as **lost** when any date strictly before the current London date carries no day mark.
+Week completion SHALL be determined from the stored day marks alone. The system SHALL NOT report any intermediate standing for a week — no notion of a week being still winnable, lost, or in progress — so no rule in this capability depends on the current London date.
 
-The current date SHALL NOT count against winnability while it is still in progress. This is deliberately different from how a day square resolves for presentation, where the current date without a day mark is reported as missed rather than as not yet occurred.
+A week's completion SHALL therefore be answered identically whether that week is in the past, in progress, or in the future.
 
-A week that is complete SHALL be reported as complete rather than as still winnable. A week whose dates all fall before the current date SHALL be reported as either complete or lost, and never as still winnable.
+#### Scenario: The same marks give the same answer all week
 
-#### Scenario: Today does not make the week lost
+- **WHEN** a child has earned Monday and Tuesday of the current week and it is Wednesday
+- **THEN** the week is reported as not complete, and that answer does not change as the day passes or as the current date moves on
 
-- **WHEN** it is Wednesday, a child has earned Monday and Tuesday, and Wednesday has no day mark yet
-- **THEN** the current week is reported as still winnable
+#### Scenario: A past week is answered the same way as a current one
 
-#### Scenario: An earlier missed day makes the week lost
+- **WHEN** completion is evaluated for a week whose dates all fall before the current London date
+- **THEN** it is reported as complete if all 7 dates are marked and as not complete otherwise, by the same rule applied to the current week
 
-- **WHEN** it is Wednesday and a child has no day mark for Monday
-- **THEN** the current week is reported as lost, and marking Tuesday and Wednesday does not change that
+#### Scenario: Backfilling completes a week
 
-#### Scenario: A fresh week starts winnable
-
-- **WHEN** the London date is a Monday and no day marks exist for the current week
-- **THEN** the current week is reported as still winnable for every child
-
-#### Scenario: A past week is never winnable
-
-- **WHEN** winnability is evaluated for a week whose dates all fall before the current London date
-- **THEN** that week is reported as complete if all 7 dates are marked and as lost otherwise, and is never reported as still winnable
-
-#### Scenario: Backfilling revives a lost week
-
-- **WHEN** a week is lost because one earlier date is unmarked, and a parent subsequently marks that date
-- **THEN** that week is no longer reported as lost
+- **WHEN** a week is incomplete because one earlier date is unmarked, and a parent subsequently marks that date
+- **THEN** that week becomes complete
 
 ### Requirement: History is retained indefinitely
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { squareState, toBullets, trophyState } from './chart';
+import { squareState, toBullets, weekComplete } from './chart';
 import { weekDates } from './dates';
 
 // All pure, so all in node. The D1-backed half of the same rules — week
@@ -36,76 +36,39 @@ describe('squareState', () => {
 	});
 });
 
-describe('trophyState', () => {
-	it('reports a fully marked week as won', () => {
-		expect(trophyState(WEEK, WEDNESDAY, earnedOn(WEEK))).toBe('won');
+describe('weekComplete', () => {
+	it('reports a fully marked week as complete', () => {
+		expect(weekComplete(WEEK, earnedOn(WEEK))).toBe(true);
 	});
 
-	it('reports a fresh week with nothing marked as winnable', () => {
-		expect(trophyState(WEEK, '2026-07-27', earnedOn([]))).toBe('winnable');
+	it('reports a week missing one day as incomplete', () => {
+		expect(weekComplete(WEEK, earnedOn(WEEK.slice(0, 6)))).toBe(false);
 	});
 
-	it('reports a week with an earlier missed day as lost', () => {
-		// Monday unmarked, Tuesday earned, on Wednesday.
-		expect(trophyState(WEEK, WEDNESDAY, earnedOn(['2026-07-28']))).toBe('lost');
-	});
-
-	it('stays lost once an earlier day is missed, however much follows', () => {
-		expect(trophyState(WEEK, WEDNESDAY, earnedOn(['2026-07-28', WEDNESDAY]))).toBe('lost');
-	});
-
-	it('revives a lost week when the missing earlier date is backfilled', () => {
-		const lost = trophyState(WEEK, WEDNESDAY, earnedOn(['2026-07-28']));
-		const revived = trophyState(WEEK, WEDNESDAY, earnedOn(['2026-07-27', '2026-07-28']));
-		expect(lost).toBe('lost');
-		expect(revived).toBe('winnable');
-	});
-
-	it('reports an incomplete past week as lost, never winnable', () => {
-		const later = '2026-08-10';
-		expect(trophyState(WEEK, later, earnedOn(WEEK.slice(0, 6)))).toBe('lost');
-	});
-
-	it('reports a complete past week as won', () => {
-		expect(trophyState(WEEK, '2026-08-10', earnedOn(WEEK))).toBe('won');
-	});
-
-	it('lets complete take precedence over the winnable window', () => {
-		// Every date marked including ones still in the future.
-		expect(trophyState(WEEK, '2026-07-27', earnedOn(WEEK))).toBe('won');
+	it('reports a fresh week with nothing marked as incomplete', () => {
+		expect(weekComplete(WEEK, earnedOn([]))).toBe(false);
 	});
 
 	it('refuses a date list that is not a week', () => {
-		expect(() => trophyState(WEEK.slice(0, 6), WEDNESDAY, earnedOn([]))).toThrow(/7 dates/);
+		// `every` over a short list is quietly true on an empty one, which is the
+		// kind of wrong a wall chart would show confidently for days.
+		expect(() => weekComplete(WEEK.slice(0, 6), earnedOn([]))).toThrow(/7 dates/);
 	});
 
-	// This is the flicker case, and the specific failure mode if trophyState were
-	// built on squareState: there, today unmarked resolves to missed, which would
-	// make the week read as lost all day and quietly revive after bedtime.
-	it('does not flip to lost when every earlier day is marked and today is not', () => {
-		const earlierDaysOnly = earnedOn(['2026-07-27', '2026-07-28']);
-		expect(trophyState(WEEK, WEDNESDAY, earlierDaysOnly)).toBe('winnable');
-	});
-
-	it('stays winnable across the whole of an unmarked today', () => {
-		// Same data every hour of the day: the state cannot depend on the clock,
-		// only on which calendar date it is.
+	// The rule this replaced took a `today` and returned won / winnable / lost.
+	// The panel retired the two partial states, and with them every question
+	// about today — so a week in progress and a week long finished are answered
+	// the same way, from the marks alone.
+	it('asks nothing about today: the same marks give the same answer', () => {
 		const marked = earnedOn(['2026-07-27', '2026-07-28']);
-		for (const today of [WEDNESDAY, WEDNESDAY, WEDNESDAY]) {
-			expect(trophyState(WEEK, today, marked)).toBe('winnable');
-		}
+		expect(weekComplete(WEEK, marked)).toBe(false);
+		expect(weekComplete(WEEK, earnedOn(WEEK))).toBe(true);
 	});
 
-	it('turns lost only once the unmarked day is genuinely past', () => {
-		const marked = earnedOn(['2026-07-27', '2026-07-28']);
-		expect(trophyState(WEEK, WEDNESDAY, marked)).toBe('winnable');
-		expect(trophyState(WEEK, '2026-07-30', marked)).toBe('lost');
-	});
-
-	it('disagrees with squareState about today, which is the point', () => {
-		const marked = earnedOn(['2026-07-27', '2026-07-28']);
-		expect(squareState(WEDNESDAY, WEDNESDAY, false)).toBe('missed');
-		expect(trophyState(WEEK, WEDNESDAY, marked)).toBe('winnable');
+	it('is complete for a future week whose dates are all marked', () => {
+		// Not reachable through the UI, which disables future controls, but the
+		// rule should not contradict the data it is given.
+		expect(weekComplete(WEEK, earnedOn(WEEK))).toBe(true);
 	});
 });
 

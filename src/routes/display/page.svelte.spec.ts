@@ -1,7 +1,7 @@
 import { render } from 'vitest-browser-svelte';
 import { describe, expect, it } from 'vitest';
 import Page from './+page.svelte';
-import type { SquareState, TrophyState } from '$lib/chart';
+import type { SquareState } from '$lib/chart';
 
 // Rendered in real Chromium (the `client` project). Today is whatever day it
 // actually is when the suite runs, so a screenshot cannot be relied on to show
@@ -10,7 +10,7 @@ import type { SquareState, TrophyState } from '$lib/chart';
 
 type Square = { date: string; state: SquareState };
 
-function week(states: SquareState[], trophy: TrophyState) {
+function week(states: SquareState[], trophy: boolean) {
 	return {
 		squares: states.map((state, i) => ({
 			date: `2026-07-${String(27 + i).padStart(2, '0')}`,
@@ -39,8 +39,10 @@ function baseData() {
 				name: 'Alice',
 				bullets: ['Piano 15 mins daily', 'Reading log signed'],
 				weeks: [
-					week(['earned', 'earned', 'missed', 'not-yet', 'not-yet', 'not-yet', 'not-yet'], 'lost'),
-					week(EARNED_WEEK, 'won')
+					week(['earned', 'earned', 'missed', 'not-yet', 'not-yet', 'not-yet', 'not-yet'], false),
+					// The only won week in the fixture, so exactly one trophy is on the
+					// page and the assertions below can name its row.
+					week(EARNED_WEEK, true)
 				]
 			},
 			{
@@ -48,11 +50,8 @@ function baseData() {
 				name: 'Ben',
 				bullets: ['Spellings'],
 				weeks: [
-					week(
-						['earned', 'earned', 'missed', 'not-yet', 'not-yet', 'not-yet', 'not-yet'],
-						'winnable'
-					),
-					week(['earned', 'missed', 'earned', 'earned', 'missed', 'earned', 'earned'], 'lost')
+					week(['earned', 'earned', 'missed', 'not-yet', 'not-yet', 'not-yet', 'not-yet'], false),
+					week(['earned', 'missed', 'earned', 'earned', 'missed', 'earned', 'earned'], false)
 				]
 			}
 		]
@@ -97,40 +96,40 @@ describe('the display page', () => {
 		expect(notYet.querySelector('svg')).toBeNull();
 	});
 
-	it('gives every week row a trophy, so the slot is never empty', async () => {
+	it('draws a trophy on a complete week and on no other', async () => {
 		const page = render(Page, { data: data() });
 		const rows = page.baseElement.querySelectorAll('.row');
-		for (const row of rows) {
-			expect(row.querySelector('.trophy-col svg')).not.toBeNull();
-		}
+
+		// Rows are week-major: [current/Alice, current/Ben, prev/Alice, prev/Ben].
+		// Only Alice's previous week is complete.
+		const withTrophy = [...rows].map((row) => row.querySelector('.trophy-col svg') !== null);
+		expect(withTrophy).toEqual([false, false, true, false]);
 	});
 
-	it('fills the won trophy and leaves the others hollow', async () => {
+	it('draws the trophy in the same solid black as the stars it sums up', async () => {
+		// It was `#555` on the first panel build and read as the faded mark in a
+		// row of black stars — the reward looking weaker than the days that earned
+		// it. Grey is also what 2-bit conversion mangles first (design.md D13).
 		const page = render(Page, { data: data() });
-		const rows = page.baseElement.querySelectorAll('.row');
+		const trophy = page.baseElement.querySelectorAll('.row')[2].querySelector('.trophy-col svg')!;
+		const star = page.baseElement.querySelector('.cell svg')!;
 
-		// Alice's previous week is won; Ben's previous week is lost. Both sit in
-		// the second block now, so they are rows 2 and 3.
-		const won = rows[2].querySelector('.trophy-col svg path')!;
-		const lost = rows[3].querySelector('.trophy-col svg path')!;
-
-		expect(won.getAttribute('fill')).toBe('#555555');
-		expect(lost.getAttribute('fill')).toBe('none');
+		expect(trophy.getAttribute('stroke')).toBe('#000000');
+		expect(trophy.querySelector('path')!.getAttribute('fill')).toBe('#000000');
+		expect(star.getAttribute('fill')).toBe('#000000');
 	});
 
-	it('separates winnable from lost by grey level alone', async () => {
+	it('keeps both week blocks aligned when a row has no trophy', async () => {
+		// The trophy column is reserved, not conditional: an empty slot must not
+		// let the second week slide left on a canvas with fixed positions.
 		const page = render(Page, { data: data() });
 		const rows = page.baseElement.querySelectorAll('.row');
+		const widths = [...rows].map(
+			(row) => row.querySelector('.trophy-col')!.getBoundingClientRect().width
+		);
 
-		// Ben's previous week is lost; his current week is still winnable.
-		const lost = rows[3].querySelector('.trophy-col svg')!;
-		const winnable = rows[1].querySelector('.trophy-col svg')!;
-
-		expect(lost.getAttribute('stroke')).toBe('#AAAAAA');
-		expect(winnable.getAttribute('stroke')).toBe('#555555');
-		// Both hollow: the distinction here is level, not silhouette.
-		expect(lost.querySelector('path')!.getAttribute('fill')).toBe('none');
-		expect(winnable.querySelector('path')!.getAttribute('fill')).toBe('none');
+		expect(new Set(widths).size).toBe(1);
+		expect(widths[0]).toBeGreaterThan(0);
 	});
 
 	it('dates the current week and names the previous one', async () => {
@@ -166,6 +165,22 @@ describe('the display page', () => {
 		expect(blocks[0].querySelectorAll('li')).toHaveLength(2);
 		expect(blocks[1].querySelector('h2')?.textContent).toBe('Ben');
 		expect(blocks[1].querySelectorAll('li')).toHaveLength(1);
+	});
+
+	it('draws the tasks as plain lines, with no bullet markers or indent', async () => {
+		// On the panel the markers read as a column of clutter next to the star
+		// grid, and the indent cost width a wrapping task spends on a second line
+		// (design.md D12).
+		const page = render(Page, { data: data() });
+		const list = page.baseElement.querySelector('.task-block ul')!;
+		const style = getComputedStyle(list);
+
+		expect(style.listStyleType).toBe('none');
+		expect(Number.parseFloat(style.paddingLeft)).toBe(0);
+
+		// The text starts at the block's own left edge, not indented past it.
+		const block = page.baseElement.querySelector('.task-block')!.getBoundingClientRect();
+		expect(list.querySelector('li')!.getBoundingClientRect().left).toBe(block.left);
 	});
 
 	it('keeps the layout intact for a child with no tasks', async () => {

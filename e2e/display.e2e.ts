@@ -215,9 +215,9 @@ test.describe('the display page fits its panel', () => {
 	});
 
 	test('lays out at 800 on a phone, so a preview shows the whole chart', async ({ browser }) => {
-		// A parent previewing from a phone must see the second week, both trophies
-		// and the render stamp. Without the viewport meta the phone lays out at
-		// its own width and crops to the left third of the canvas.
+		// A parent previewing from a phone must see the second week, its trophy
+		// column and the render stamp. Without the viewport meta the phone lays out
+		// at its own width and crops to the left third of the canvas.
 		//
 		// This cannot affect what TRMNL captures: the screenshotter renders at an
 		// 800x480 desktop viewport, where viewport meta is ignored — which the
@@ -239,10 +239,21 @@ test.describe('the display page fits its panel', () => {
 		}));
 		expect(layout).toEqual({ width: 800, overflow: 0 });
 
-		// The far edge of the canvas is present, not cropped away.
+		// The far edge of the canvas is present, not cropped away. Anchored on the
+		// trophy *column* rather than on trophies: the seeded weeks are incomplete,
+		// so there is nothing drawn in it, but it is still the rightmost thing on
+		// the second week block (design.md D13).
 		await expect(page.locator('.stamp')).toBeVisible();
 		expect(await page.locator('.week-label').count()).toBe(2);
-		expect(await page.locator('.trophy-col svg').count()).toBe(4);
+
+		const rightEdge = await page
+			.locator('.week')
+			.last()
+			.locator('.trophy-col')
+			.last()
+			.evaluate((el) => el.getBoundingClientRect().right);
+		expect(rightEdge).toBeGreaterThan(700);
+		expect(rightEdge).toBeLessThanOrEqual(800);
 
 		await context.close();
 	});

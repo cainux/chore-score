@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { toBullets, squareState, trophyState } from '$lib/chart';
+import { toBullets, squareState, weekComplete } from '$lib/chart';
 import { displayWindow, londonParts } from '$lib/dates';
 import { PREVIOUS_WEEK_LABEL, weekLabel } from '$lib/display/labels';
 import {
@@ -61,9 +61,9 @@ export const load: PageServerLoad = async ({ platform }) => {
 					date,
 					state: squareState(date, today, marks.has(markKey(child.id, date)))
 				})),
-				// Deliberately its own rule, not derived from the squares above
-				// (design.md D13).
-				trophy: trophyState(week.dates, today, (date) => marks.has(markKey(child.id, date)))
+				// Won or nothing — no partial states, so this asks nothing about
+				// today (design.md D13).
+				trophy: weekComplete(week.dates, (date) => marks.has(markKey(child.id, date)))
 			}))
 		}))
 	};
