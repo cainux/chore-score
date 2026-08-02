@@ -17,6 +17,7 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.20.1",
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.9",
