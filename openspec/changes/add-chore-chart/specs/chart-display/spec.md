@@ -34,21 +34,26 @@ The current week leads because it is the week being played, and it is what almos
 - **WHEN** the London date crosses from Sunday into Monday
 - **THEN** the next render shows the just-finished week as the previous week and a fresh empty week as the current week, and the older week is no longer shown
 
-#### Scenario: Both weeks are labelled with their dates
+#### Scenario: The current week is labelled with its dates
 
 - **WHEN** the display page is rendered
-- **THEN** each week is labelled with the calendar dates it covers, so a viewer can tell both which week is which and which dates they are
+- **THEN** the current week is labelled with the calendar dates it covers
+
+#### Scenario: The previous week is named rather than dated
+
+- **WHEN** the display page is rendered
+- **THEN** the previous week is labelled with a relative name, because the dates of a week that has already finished are not what a viewer wants from it
 
 #### Scenario: Labels do not remain true when the chart is stale
 
 - **WHEN** a rendered chart is viewed some weeks after it was produced
-- **THEN** its week labels name dates that no longer match the current week, rather than remaining accurate indefinitely
+- **THEN** the current week's label names dates that no longer match the current week, rather than remaining accurate indefinitely
 
 ### Requirement: The display states when it was rendered
 
 The display SHALL show the London date and clock time at which it was rendered, positioned in the bottom right of the canvas and styled so it does not compete with the chart itself.
 
-This exists because the panel cannot signal failure. It holds its last captured image with no power, so a stale chart is visually identical to a current one. The stamp, together with dated week labels, is the only means by which a viewer can tell that what they are looking at is out of date.
+This exists because the panel cannot signal failure. It holds its last captured image with no power, so a stale chart is visually identical to a current one. The stamp, together with the current week's dated label, is the only means by which a viewer can tell that what they are looking at is out of date. At least one dated element SHALL therefore remain on the page.
 
 The space the stamp occupies SHALL be reserved, so that no amount of task list content can displace it.
 

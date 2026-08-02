@@ -32,13 +32,28 @@ function weekday(date: DateString): number {
 }
 
 /**
+ * The right-hand week's label.
+ *
+ * Relative rather than dated, unlike the current week. A relative label stays
+ * true forever, which is exactly what D10 warns about — an e-ink panel holds
+ * its last image with no power, so a dead panel and a live one are
+ * pixel-identical, and a label that can never go wrong cannot expose that.
+ *
+ * It is affordable on this one label because the staleness signal does not rest
+ * on it: the current week keeps its dates and the render stamp keeps its date
+ * and time, so two independent parts of the page still go visibly wrong. And
+ * "which dates was that week" is a question nobody asks of the week that has
+ * already finished — what they want to know is whether it was a good one.
+ */
+export const PREVIOUS_WEEK_LABEL = 'LAST WEEK';
+
+/**
  * Labels a week by the dates it covers — `20–26 JUL`, or `27 JUL–2 AUG` when it
  * straddles a month.
  *
- * Dates rather than "LAST WEEK" / "THIS WEEK", and that is the whole point
- * (design.md D10). A relative label stays true forever, which is precisely the
- * problem: an e-ink panel holds its last image with no power, so a dead panel
- * and a live one are pixel-identical. A dated label goes visibly wrong.
+ * Dates rather than "THIS WEEK", and that is the whole point (design.md D10):
+ * this is the label carrying the staleness signal, so it has to be one that can
+ * go visibly wrong.
  */
 export function weekLabel(dates: DateString[]): string {
 	const first = parts(dates[0]);

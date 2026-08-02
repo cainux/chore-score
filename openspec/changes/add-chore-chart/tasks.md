@@ -59,12 +59,13 @@ The database, its binding, and the schema migration land in section 1 because th
 - [x] 6.3 Implement the fixed 800×480 layout: two task blocks above, two-week grid below, using the pixel budget in design.md D6
 - [x] 6.4 Render day squares in the three states using the grey levels in design.md D7
 - [x] 6.5 Render the trophy in all three states per design.md D13 — solid `#555` won, outline `#555` winnable, outline `#AAA` lost — on both week rows, so the slot is never empty
-- [x] 6.6 Label each week with the dates it covers rather than "last week" / "this week" (design.md D10)
+- [x] 6.6 Label the current week with the dates it covers rather than "this week" (design.md D10) — **revised in 6.12**: the previous week is now named, not dated
 - [x] 6.7 Render the `updated <date> <time>` stamp bottom right, absolutely positioned in its reserved 16px band so task content cannot displace it
 - [x] 6.8 Constrain the task blocks so an over-long list cannot push the grid or the stamp off screen; clip surplus bullets rather than shrinking type, and settle the bullet limit (~8 comfortable, ~10 maximum) against rendered height, not typed lines
 - [x] 6.9 Set `Cache-Control: no-store` on the display response
 - [x] 6.10 Verify the page is complete with JavaScript disabled and screenshots correctly at exactly 800×480 in a headless browser
 - [x] 6.11 Order the two weeks current-first, previous-second — left to right on the display, top to bottom on the admin page's stacked weeks — so the week being played leads on both surfaces (design.md D6, D8)
+- [x] 6.12 Label the previous week `LAST WEEK` rather than with its dates, and keep a test on the rule that makes that safe: at least one dated element — the current week's label, the render stamp — stays on the page (design.md D10, revised)
 
 ## 7. Admin page — single page, phone-first
 

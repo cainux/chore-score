@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { toBullets, squareState, trophyState } from '$lib/chart';
 import { displayWindow, londonParts } from '$lib/dates';
-import { weekLabel } from '$lib/display/labels';
+import { PREVIOUS_WEEK_LABEL, weekLabel } from '$lib/display/labels';
 import {
 	fetchChildren,
 	fetchDayMarks,
@@ -37,7 +37,14 @@ export const load: PageServerLoad = async ({ platform }) => {
 	// Current week first, previous second (design.md D6). The week being played
 	// is the one a passing glance is for; last week is the record it is measured
 	// against, so it reads second.
-	const weeks = [current, previous].map((dates) => ({ dates, label: weekLabel(dates) }));
+	//
+	// Only the current week is dated. The one behind it says "LAST WEEK", which
+	// is always true — see PREVIOUS_WEEK_LABEL for why that is affordable here
+	// and nowhere else on the page (design.md D10).
+	const weeks = [
+		{ dates: current, label: weekLabel(current) },
+		{ dates: previous, label: PREVIOUS_WEEK_LABEL }
+	];
 
 	return {
 		today,

@@ -30,8 +30,9 @@ function baseData() {
 	return {
 		today: '2026-07-29',
 		time: '20:14',
-		// Current week first, previous second — the order the server hands over.
-		weeks: ['27 JUL–2 AUG', '20–26 JUL'],
+		// Current week first, previous second — the order the server hands over,
+		// and only the current one is dated.
+		weeks: ['27 JUL–2 AUG', 'LAST WEEK'],
 		rows: [
 			{
 				id: 'alice',
@@ -132,12 +133,12 @@ describe('the display page', () => {
 		expect(winnable.querySelector('path')!.getAttribute('fill')).toBe('none');
 	});
 
-	it('labels each week with the dates it covers', async () => {
+	it('dates the current week and names the previous one', async () => {
 		const page = render(Page, { data: data() });
 		const labels = [...page.baseElement.querySelectorAll('.week-label')].map((l) =>
 			l.textContent?.trim()
 		);
-		expect(labels).toEqual(['27 JUL–2 AUG', '20–26 JUL']);
+		expect(labels).toEqual(['27 JUL–2 AUG', 'LAST WEEK']);
 	});
 
 	it('stamps the render date and time', async () => {

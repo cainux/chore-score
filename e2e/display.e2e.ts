@@ -97,18 +97,29 @@ test.describe('the current week comes first', () => {
 		return month === to.month && day <= to.day;
 	}
 
-	test('labels the left-hand week with the span containing today', async ({ page }) => {
+	test('dates the left-hand week with the span containing today', async ({ page }) => {
 		await page.goto('/display');
 
 		// The stamp is the page's own statement of today: `updated Sun 2 Aug 20:14`.
 		const stamp = (await page.locator('.stamp').textContent())!.trim();
 		const [, , day, month] = stamp.split(' ');
-		const today = { day: Number(day), month: month.toUpperCase() };
 
 		const labels = await page.locator('.week-label').allTextContents();
 		expect(labels).toHaveLength(2);
-		expect(covers(labels[0].trim(), today.day, today.month)).toBe(true);
-		expect(covers(labels[1].trim(), today.day, today.month)).toBe(false);
+		expect(covers(labels[0].trim(), Number(day), month.toUpperCase())).toBe(true);
+		// The week behind it is named, not dated (design.md D10).
+		expect(labels[1].trim()).toBe('LAST WEEK');
+	});
+
+	test('keeps a dated label on the page, so a dead panel still reads as wrong', async ({
+		page
+	}) => {
+		await page.goto('/display');
+
+		// "LAST WEEK" is true forever. The staleness signal therefore rests
+		// entirely on these two, and both must carry a real date.
+		await expect(page.locator('.week-label').first()).toHaveText(/\d/);
+		await expect(page.locator('.stamp')).toHaveText(/\d+ \w{3} \d{2}:\d{2}$/);
 	});
 
 	test('puts the name gutter on the current week, which is now the left one', async ({ page }) => {

@@ -156,7 +156,7 @@ The display page is not responsive. It is a fixed 800×480 canvas, because it ha
 │  └──────────────────────────┘  └──────────────────────────┘          │
 │  ──────────────────────────────────────────────────────────────────  │
 │                                                                      │
-│        27 JUL–2 AUG                   20–26 JUL                      │  20px
+│        27 JUL–2 AUG                   LAST WEEK                      │  20px
 │        M  T  W  T  F  S  S            M  T  W  T  F  S  S            │  22px
 │  ┌────┬──┬──┬──┬──┬──┬──┬──┬──┐ ┌──┬──┬──┬──┬──┬──┬──┬──┐            │
 │  │Alice│★│★ │★ │· │· │· │▽ │  │ │★ │★ │★ │  │★ │★ │★ │▼ │            │  72px
@@ -281,8 +281,10 @@ That matters more here than it would elsewhere. This chart's job is to be believ
 
 Two changes, both cheap:
 
-1. **Week labels carry dates** (`20–26 JUL`) instead of relative words (`LAST WEEK`). A relative label is true forever, which is precisely the problem. A dated one goes visibly wrong.
+1. **The current week's label carries dates** (`27 JUL–2 AUG`) instead of relative words (`THIS WEEK`). A relative label is true forever, which is precisely the problem. A dated one goes visibly wrong.
 2. **A render stamp** in the bottom right: `updated Sat 2 Aug 20:14`, light grey, 16 px band reserved against the bottom edge.
+
+_Why the previous week is exempt:_ it is labelled `LAST WEEK`, which is true forever — exactly what this decision argues against. Two things make it affordable on that one label. The staleness signal is not carried by it: the current week's label and the stamp both still go visibly wrong, and one of them is enough. And the question a viewer brings to a finished week is whether it was a good one, not which dates it spanned — so the dates were paying no rent there. The rule that matters is the one the spec now states directly: **at least one dated element stays on the page.** Do not spend the last one.
 
 _Why the date and not just the time:_ a screenshot cannot say "5 minutes ago" — it has no idea when it will be looked at — so the reader must do the arithmetic. They will not. Nobody glancing at a wall works out whether 47 minutes is within the poll interval. The date is the part that reads as wrong without any arithmetic at all, and the day name is what makes it instant.
 
