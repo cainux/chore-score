@@ -34,8 +34,29 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		// UTC everywhere (design.md D2). A local-time accessor reads the clock of
+		// whatever machine happens to be running — in production, a Worker in UTC;
+		// in a test, a laptop in whatever zone its owner is in. Both are wrong, and
+		// the second hides the first. The UTC accessors (getUTCDay and friends) are
+		// deliberately not restricted, and neither is Date.UTC.
+		//
+		// This applies inside londonParts too: it reads its values from
+		// formatToParts, not from any accessor.
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector:
+						'MemberExpression[property.name=/^(getDate|getDay|getFullYear|getHours|getMilliseconds|getMinutes|getMonth|getSeconds|getTimezoneOffset)$/]',
+					message:
+						'Local-time accessors are a defect in this codebase — everything is UTC. Use the getUTC* equivalent, or londonParts() if you genuinely need the household wall clock.'
+				},
+				{
+					selector: 'MemberExpression[property.name=/^(toLocaleDateString|toLocaleTimeString)$/]',
+					message:
+						'Locale/zone-dependent formatting is a defect in this codebase. Format from zone-free date strings, or use londonParts() for the render stamp.'
+				}
+			]
+		}
 	}
 );
