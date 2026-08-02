@@ -1,17 +1,25 @@
-# Local development secrets. Copy to .dev.vars, which is gitignored.
+# Local development secrets. Copy to .dev.vars, which is gitignored:
 #
-# In production these are Worker secrets, set with:
+#   cp .dev.vars.example .dev.vars
+#
+# These exact values are what the Playwright suite signs in with, so copy the
+# file unchanged unless you update e2e/ too. They are local-only fixtures and
+# are deliberately not secret.
+#
+# Production uses Worker secrets instead, which never live in this repo:
 #   wrangler secret put ADMIN_PASSWORD
 #   wrangler secret put DISPLAY_KEY
 #   wrangler secret put SESSION_SECRET
 #
-# The app fails closed if any is missing — it will not fall back to a default.
+# The app fails closed if any of the three is missing. It will not fall back to
+# a default, so a misconfigured deployment refuses requests rather than quietly
+# serving the chart to anyone who asks.
 
 # Shared password for /admin, known to both parents.
-ADMIN_PASSWORD="change me"
+ADMIN_PASSWORD="dev-admin-password"
 
 # Value the TRMNL Screenshot plugin sends in the X-Display-Key header.
-DISPLAY_KEY="change me too"
+DISPLAY_KEY="dev-display-key"
 
 # Key the admin session cookie is signed with. Rotating it signs everyone out.
-SESSION_SECRET="and me"
+SESSION_SECRET="dev-session-secret"
