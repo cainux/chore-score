@@ -96,3 +96,30 @@ export function weekStart(date: DateString): DateString {
 	const offset = (new Date(ms).getUTCDay() + 6) % 7;
 	return fromUtcMs(ms - offset * DAY_MS);
 }
+
+/** The 7 dates of the week beginning on `monday`, Monday first. */
+export function weekDates(monday: DateString): DateString[] {
+	const ms = toUtcMs(monday);
+	return Array.from({ length: 7 }, (_, i) => fromUtcMs(ms + i * DAY_MS));
+}
+
+/** The two weeks both pages show: the previous week and the current one. */
+export type DisplayWindow = {
+	today: DateString;
+	previous: DateString[];
+	current: DateString[];
+};
+
+/**
+ * The two-week window, derived from the instant on every request so the weeks
+ * roll over without anyone doing anything.
+ */
+export function displayWindow(now: Date): DisplayWindow {
+	const today = londonToday(now);
+	const thisMonday = weekStart(today);
+	return {
+		today,
+		previous: weekDates(addDays(thisMonday, -7)),
+		current: weekDates(thisMonday)
+	};
+}
