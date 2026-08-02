@@ -4,9 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-This repo is **scaffolding plus a complete specification, with no application code yet**. `src/` is the stock `sv create --template minimal` skeleton: `src/routes/+page.svelte`, `src/routes/demo/`, and `src/lib/vitest-examples/` are all placeholder examples to be deleted as real code lands.
+**Built, deployed and running on the wall.** Production is <https://chores.oha.me>, and `/display` on it is what the TRMNL panel captures every 15 minutes. The `add-chore-chart` change that built it is complete and archived.
 
-The actual work is fully specified in `openspec/changes/add-chore-chart/`. Read `proposal.md`, `design.md`, `specs/*/spec.md`, and `tasks.md` before writing code — the design makes non-obvious decisions (absence-as-state schema, two independent auth gates, fixed-pixel layout) that are not recoverable from the source tree.
+Two places hold the written record, and they answer different questions:
+
+- **`openspec/specs/*/spec.md`** — what the system does now. Four capabilities, 46 requirements: `chore-tracking`, `chart-display`, `parent-admin`, `access-control`. This is the living contract; keep it true.
+- **`openspec/changes/archive/2026-08-02-add-chore-chart/`** — **why**, which the specs deliberately do not carry. Its `design.md` holds the numbered decisions (D1–D15) that the code comments and this file cite as "design.md D9" and the like. Several were reversed by the physical panel and record both the original reasoning and what overturned it, so read the whole entry rather than skimming for the current answer.
+
+Read `design.md` before changing anything on the display or in the date module. It makes decisions — absence-as-state schema, two asymmetric auth gates, a fixed-pixel canvas, a trophy with no notion of today — that are not recoverable from the source tree, and that look arbitrary until you know what they cost to learn.
 
 ## Commands
 
@@ -21,17 +26,23 @@ pnpm lint                 # prettier --check . && eslint .
 pnpm format               # prettier --write .
 pnpm test                 # unit (single run) + e2e
 pnpm test:unit            # vitest, watch mode
-pnpm test:e2e             # playwright (builds + previews first)
+pnpm test:e2e             # playwright (builds, then wrangler dev on :4173)
+pnpm run deploy           # build + wrangler deploy, to the live wall chart
 ```
 
 Running a subset:
 
 ```sh
-pnpm test:unit -- --run src/lib/dates.spec.ts     # one unit file, no watch
-pnpm test:unit -- --run --project server          # node-side tests only
-pnpm test:unit -- --run --project client          # browser-side tests only
-pnpm test:e2e -- -g "toggles a square"            # one e2e test by name
+pnpm test:unit --run src/lib/dates.spec.ts     # one unit file, no watch
+pnpm test:unit --run --project server          # node-side only      (115)
+pnpm test:unit --run --project client          # browser-side only    (32)
+pnpm test:unit --run --project workers         # real workerd + D1    (53)
+npx playwright test -g "44x44"                 # e2e tests matching a name
 ```
+
+**No `--` before the flags.** `pnpm test:unit -- --run --project server` silently runs the entire suite: pnpm forwards the bare `--` to vitest, which reads it as a filename filter rather than a separator, and the `--project` never takes effect. It looks like it worked, because 200 passing tests look like success. The same applies to `-g` on the e2e script, which is why that line calls Playwright directly.
+
+Note that e2e runs against **`wrangler dev`, not `vite preview`**. The auth gates read their secrets from Worker bindings, and `vite preview` is plain Node with none — every gated route would fail closed with a 500 and the suite would pass for entirely the wrong reason. Secrets come from `.dev.vars`.
 
 ## Testing layout
 
@@ -61,7 +72,8 @@ So a D1 test can assume nothing on entry, and the schema has to be put there by 
 
 ## Configuration notes
 
-- There is **no `svelte.config.js`** — the SvelteKit adapter and compiler options live inline in `vite.config.ts`. Change the adapter there. It currently uses `adapter-auto`; task 1.1 switches it to `adapter-cloudflare` for Workers + D1.
+- There is **no `svelte.config.js`** — the SvelteKit adapter and compiler options live inline in `vite.config.ts`. It uses `adapter-cloudflare`; change it there.
+- **`wrangler.jsonc` declares the custom domain in `routes`.** Do not remove that entry to "clean up" a value the dashboard already has. Cloudflare overrides dashboard routes on deploy with whatever the config says, so an absent `routes` can detach `chores.oha.me` — and on e-ink that is the worst available failure, because the wall keeps showing its last good capture and nothing announces the fault.
 - **Runes mode is forced** for all non-`node_modules` files, so `$state`/`$props`/`$derived` are mandatory — no `export let`, no legacy stores in components.
 - Prettier: tabs, single quotes, no trailing commas, 100 columns. ESLint pulls its ignores from `.gitignore`.
 
@@ -70,24 +82,30 @@ So a D1 test can assume nothing on entry, and the schema has to be put there by 
 This rule is in `openspec/config.yaml` and is load-bearing for correctness across BST transitions:
 
 - Everything stored, transported, logged, or computed is **UTC**. Calendar dates are zone-free `'YYYY-MM-DD'` strings; date arithmetic is `Date.UTC(...)` plus whole multiples of `86_400_000`.
-- **`londonParts(now)` is the only function permitted to reference `Europe/London`.** It returns `{ date, time }` from a single `Intl.DateTimeFormat` `formatToParts` call; `londonToday(now)` is a thin wrapper returning the date. The time exists for one consumer only — the render stamp on the display. Any other named timezone, or any local-time API (`getDate`, `getDay`, `getHours`, `getMonth`, `getFullYear`), is a defect — task 2.5 adds a lint rule or test enforcing this, and it applies inside `londonParts` too.
+- **`londonParts(now)` is the only function permitted to reference `Europe/London`.** It returns `{ date, time }` from a single `Intl.DateTimeFormat` `formatToParts` call; `londonToday(now)` is a thin wrapper returning the date. The time exists for one consumer only — the render stamp on the display. Any other named timezone, or any local-time API (`getDate`, `getDay`, `getHours`, `getMonth`, `getFullYear`), is a defect. `src/lib/invariants.spec.ts` enforces this across the whole codebase, including inside `londonParts` itself.
 
 Every other date function takes a date string and is testable with no clock, zone, or mocking.
 
-## Architecture (as designed, not yet built)
+## Architecture
 
 SvelteKit on Cloudflare Workers with D1. Two routes with almost nothing in common — deliberately no shared UI layer:
 
 - **`GET /display`** — server-rendered chart for a TRMNL OG e-ink panel screenshotted by a headless browser. Fixed 800×480 absolute-pixel layout, 2-bit greyscale palette, inline SVG, self-hosted `woff2`, **zero external requests and zero client-side rendering** (anything that renders after the screenshot fires does not exist), `Cache-Control: no-store`.
 - **`/admin/*`** — phone-first single scrolling column for parents. Mutations are SvelteKit **form actions** that work without JavaScript, with `use:enhance` layering optimistic toggling on top.
 
-`hooks.server.ts` holds two non-overlapping gates: a secret-header check for `/display` and an HMAC-signed cookie session for `/admin`. Both secrets come from Worker bindings and the app fails closed if either is missing.
+`hooks.server.ts` holds two gates: a secret-header check for `/display` and an HMAC-signed cookie session for `/admin`. Both secrets come from Worker bindings and the app fails closed if either is missing. They are **asymmetric on purpose** — an admin session also opens `/display`, so a parent can preview the wall chart from a phone, but the display key never opens `/admin`. That key is configured into a third-party screenshot service and sent on every poll, making it the most exposed credential here, so it confers nothing beyond reading the chart (design.md D4).
 
-Storage is three tables (`children`, `day_marks`, `task_lists`). `day_marks` has **one row per earned day and no boolean column** — "not earned" is the absence of a row, which makes marking idempotent via `INSERT OR IGNORE` and clearing residue-free via `DELETE`. The weekly trophy is derived (`COUNT(*) = 7` over a week's dates), never stored. It renders in three states — won, still winnable, lost — where "lost" means an unmarked date **strictly before** today. That is deliberately not the same rule as day-square resolution, which counts an unmarked today as missed; building one on the other makes the trophy flicker daily (design.md D13).
+Storage is three tables (`children`, `day_marks`, `task_lists`). `day_marks` has **one row per earned day and no boolean column** — "not earned" is the absence of a row, which makes marking idempotent via `INSERT OR IGNORE` and clearing residue-free via `DELETE`. The weekly trophy is derived (`COUNT(*) = 7` over a week's dates), never stored.
+
+**The trophy has one state and asks nothing about today.** It is drawn on a complete week and not otherwise. It formerly had three states — won, still winnable, lost — which needed a "strictly before today" rule, deliberately different from how a day square resolves, purely to stop it flickering daily. The panel retired the hollow variants (they did not read as a trophy across a room), and the whole today question went with them. `weekComplete(dates, isEarned)` takes no `today` at all. Do not reintroduce one without reading design.md D13, which records why the richer version was tried and what killed it.
 
 ## OpenSpec workflow
 
 Changes are spec-driven through the `openspec` CLI (v1.7.0) and its skills (`openspec-propose`, `openspec-apply-change`, `openspec-update-change`, `openspec-sync-specs`, `openspec-archive-change`, `openspec-explore`), also available as `/opsx:*` commands. Work implements `tasks.md`; when behaviour changes, update the change's artifacts rather than editing code alone. `openspec/config.yaml` requires design docs to include a mermaid data-flow diagram.
+
+New work starts with `/opsx:propose`, which creates a change under `openspec/changes/` with `openspec/specs/` as its baseline — a **modified** capability needs a delta spec whose folder name matches the existing one. There are no active changes right now.
+
+The archived change is worth imitating in one respect: when the panel overturned a decision, the reversal was written into `design.md` alongside the original argument rather than replacing it, and the superseded tasks were annotated with what reversed them instead of being deleted. That is why "why is the trophy so plain?" has an answer. Keep doing it.
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
 
