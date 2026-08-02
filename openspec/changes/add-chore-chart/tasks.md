@@ -52,8 +52,8 @@ The database, its binding, and the schema migration land in section 1 because th
 
 ## 6. Display page
 
-- [ ] 6.1 Add the bundled text `woff2` and its `@font-face` rule; confirm no external requests are made by the page
-- [ ] 6.1a Bundle **Noto Emoji** (the monochrome family, not Noto Color Emoji) as a second self-hosted `woff2` and put it in the font stack after the text face, so emoji in names render as line art rather than falling back to a system font (design.md D15); check the payload size against the cold-start concern
+- [x] 6.1 Add the bundled text `woff2` and its `@font-face` rule; confirm no external requests are made by the page
+- [x] 6.1a Bundle **Noto Emoji** (the monochrome family, not Noto Color Emoji) as a second self-hosted `woff2` and put it in the font stack after the text face, so emoji in names render as line art rather than falling back to a system font (design.md D15); check the payload size against the cold-start concern
 - [ ] 6.2 Build the star as inline SVG, plus the trophy in solid and outline variants, at the sizes given in design.md D6
 - [ ] 6.3 Implement the fixed 800×480 layout: two task blocks above, two-week grid below, using the pixel budget in design.md D6
 - [ ] 6.4 Render day squares in the three states using the grey levels in design.md D7

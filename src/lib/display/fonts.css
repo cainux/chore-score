@@ -1,0 +1,44 @@
+/*
+ * Both faces are served by this app from /fonts/, never from a font host
+ * (design.md D5). The screenshot captures whatever is on screen when it fires,
+ * and a third-party fetch is a race it can lose — with a fallback typeface, or
+ * a row of tofu boxes, left on the kitchen wall until the next refresh.
+ *
+ * `font-display: block` is right here for the same reason and would be wrong
+ * almost anywhere else. On a normal page it means a flash of invisible text; on
+ * a page whose only viewer is a camera, it means the capture waits for the real
+ * glyphs instead of freezing a fallback into a photograph.
+ */
+
+@font-face {
+	font-family: 'ChoreText';
+	src: url('/fonts/inter-400.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: block;
+}
+
+@font-face {
+	font-family: 'ChoreText';
+	src: url('/fonts/inter-700.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: block;
+}
+
+/*
+ * The monochrome family, not Noto Color Emoji: colour glyphs reduced to four
+ * grey levels at name size become an indistinct smudge (design.md D15).
+ *
+ * It sits after the text face in the stack, so it only ever supplies glyphs the
+ * text face has not got. That is also what keeps its 464K off most renders —
+ * a browser fetches a webfont only when a character actually needs it, so a
+ * chart with no emoji in either name never requests this file.
+ */
+@font-face {
+	font-family: 'ChoreEmoji';
+	src: url('/fonts/noto-emoji-400.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: block;
+}
