@@ -16,17 +16,36 @@ describe('migrated schema', () => {
 		]);
 	});
 
-	it('starts each test with empty tables', async () => {
-		const { results } = await env.DB.prepare('SELECT COUNT(*) AS n FROM children').all<{
+	it('seeds the roster, so a test has children to hang marks off', async () => {
+		const { results } = await env.DB.prepare(
+			'SELECT id, sort_order FROM children ORDER BY sort_order'
+		).all<{ id: string; sort_order: number }>();
+		expect(results).toEqual([
+			{ id: 'alice', sort_order: 1 },
+			{ id: 'ben', sort_order: 2 }
+		]);
+	});
+
+	it('seeds no task list, since "not set yet" is a state that must work', async () => {
+		const { results } = await env.DB.prepare('SELECT COUNT(*) AS n FROM task_lists').all<{
+			n: number;
+		}>();
+		expect(results[0].n).toBe(0);
+	});
+
+	it('rolls back what a test writes', async () => {
+		const { results } = await env.DB.prepare('SELECT COUNT(*) AS n FROM day_marks').all<{
 			n: number;
 		}>();
 		expect(results[0].n).toBe(0);
 
-		await env.DB.prepare("INSERT INTO children (id, name, sort_order) VALUES ('x', 'X', 1)").run();
+		await env.DB.prepare(
+			"INSERT INTO day_marks (child_id, date) VALUES ('alice', '2026-08-01')"
+		).run();
 	});
 
 	it('does not see the row the previous test inserted', async () => {
-		const { results } = await env.DB.prepare('SELECT COUNT(*) AS n FROM children').all<{
+		const { results } = await env.DB.prepare('SELECT COUNT(*) AS n FROM day_marks').all<{
 			n: number;
 		}>();
 		expect(results[0].n).toBe(0);
