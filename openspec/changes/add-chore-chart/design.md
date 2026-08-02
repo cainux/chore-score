@@ -291,7 +291,7 @@ Running D6's own budget, the canvas has room for one more row and no more:
 - **The display layout stays fixed** because fixedness is the point of D6: a fluid layout on a single fixed viewport only adds ways for the chart to be subtly wrong.
 - **`sort_order` earns its place even at n=2** — it makes "Alice is always on the left" a stored fact rather than an accident of insertion order.
 
-_No guard is added_ for the case of a third row appearing in the table. The roster is configured out-of-band by someone with database access, who is by definition already in the code. Contrast task 6.6, which does guard against over-long task lists — that path is reachable by a parent through the UI, so it needs to survive misuse.
+_No guard is added_ for the case of a third row appearing in the table. The roster is configured out-of-band by someone with database access, who is by definition already in the code. Contrast task 6.8, which does guard against over-long task lists — that path is reachable by a parent through the UI, so it needs to survive misuse.
 
 _If a third child ever arrives_, the fix is retuning pixel numbers, which is exactly what step 8.4 does anyway with the real panel in front of it.
 

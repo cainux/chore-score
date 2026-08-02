@@ -6,8 +6,10 @@ The scaffold exists (SvelteKit, TypeScript, vitest, Playwright, eslint, prettier
 - [ ] 1.2 Add `wrangler.jsonc` with `main`, `assets`, and a `compatibility_date`; confirm `wrangler dev` serves the app
 - [ ] 1.3 Create the D1 database and add its binding to `wrangler.jsonc`
 - [ ] 1.4 Write the migration creating `children`, `day_marks`, and `task_lists` per design.md D1
+- [ ] 1.4a Install `@cloudflare/vitest-pool-workers` — it is not currently a dependency, though `pnpm-workspace.yaml` already allows the `workerd` build for it. The release line peering `vitest ^4.1` pins the `wrangler` and `miniflare` versions already in the lockfile, so it should resolve without moving anything else; check that it does
 - [ ] 1.5 Add the `workers` vitest project per design.md D9, standalone rather than extending `vite.config.ts`, matching `src/**/*.workers.spec.ts` — and add that same pattern to the `server` project's `exclude` so the files do not also run in Node
 - [ ] 1.6 Establish empirically whether D1 state is isolated between tests in the installed version; if it is not, settle the cleanup convention before any data-layer test is written
+- [ ] 1.6a Settle how the schema migration is applied inside the pool so D1 tests start against real tables — the mechanism belongs with whatever 1.6 concludes about isolation, since the two together decide what a test can assume on entry
 - [ ] 1.7 Write the ICU check as a `*.workers.spec.ts` test pinning a known BST instant, asserting both the London date and the London clock time, so Workers' timezone support is asserted on every run rather than observed once — the time is the more sensitive probe, since a wrong offset shifts it every hour of the day
 - [ ] 1.8 If 1.7 fails, implement the hand-rolled BST fallback (last Sunday in March to last Sunday in October) described in design.md, and note the deviation
 - [ ] 1.9 Delete the scaffolding placeholders (`src/routes/demo/`, `src/lib/vitest-examples/`, `src/lib/index.ts`, the stock `+page.svelte`); note that removing the demo e2e leaves Playwright with no tests and a non-zero exit until the first real one lands
@@ -37,6 +39,7 @@ The database, its binding, and the schema migration land in section 1 because th
 - [ ] 4.4 Implement task-text-to-bullets conversion per design.md D12: split on line breaks, trim, drop empties, strip a leading `-`/`*`/`•`; plain text only, no Markdown, stored text left untouched
 - [ ] 4.5 Test that a current week with a perfect record so far is not complete, and that clearing one day of a complete week revokes the trophy — in the `workers` project, since completion is a D1 query. Test square-state resolution, winnability, and bullet conversion in the `server` project, since they are pure
 - [ ] 4.6 Test the winnability flicker case specifically: with every earlier day marked and today unmarked, the week is still winnable and does not flip to lost — the failure mode if 4.3 is built on 4.2
+- [ ] 4.7 Put every value that step 8.4 will retune into one module with provisional settings: the name length limit in graphemes (7.7, 7.13), the bullet limit (6.8), and the display typeface (6.1). Sections 6 and 7 cannot be written without a value for each, but none can be decided before the panel is in front of you — so the point is that 8.4 edits one file rather than hunting for scattered numbers. The typeface is not a domain rule and sits here only to keep the retune in one place
 
 ## 5. Access control
 
@@ -82,6 +85,6 @@ The database, its binding, and the schema migration land in section 1 because th
 - [ ] 8.1 Deploy to a Workers preview URL with secrets set and the migration applied
 - [ ] 8.2 Point the TRMNL Screenshot plugin at the preview URL with the custom header; confirm it captures successfully
 - [ ] 8.3 Check the capture on the physical panel: are the squares legible at kitchen distance, does the font survive 2-bit conversion, are the three square states distinguishable, is a solid trophy unmistakable from a hollow one across the room, does the faint trophy stay clear of the `#AAA` grid lines around it, and does a monochrome emoji in a name read as a picture at name size
-- [ ] 8.4 Adjust type sizes, weights, and grey levels based on what the panel actually shows; decide the typeface open question here, whether the won trophy needs to be black rather than `#555`, whether the render stamp is legible at `#AAA` or needs `#555`, and settle the name length limit against real emoji names
+- [ ] 8.4 Adjust type sizes, weights, and grey levels based on what the panel actually shows; decide the typeface open question here, whether the won trophy needs to be black rather than `#555`, whether the render stamp is legible at `#AAA` or needs `#555`, and settle the name length limit against real emoji names — the provisional values are collected in the module from task 4.7
 - [ ] 8.5 Promote to the production URL and set the TRMNL refresh interval — settle it together with the render stamp, since an overnight sleep makes a healthy chart show last night's time every morning (design.md D10)
 - [ ] 8.6 Enter real task lists for both children and confirm a full round trip: toggle a square on the phone, see it appear on the wall — expect both children to show a faint trophy for last week on the first render, since it has no data
