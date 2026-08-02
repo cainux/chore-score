@@ -1,2 +1,5 @@
 allowBuilds:
   esbuild: true
+  # Required: workerd's postinstall fetches the runtime binary, which the
+  # `workers` vitest project runs tests in (design.md D9).
+  workerd: true
