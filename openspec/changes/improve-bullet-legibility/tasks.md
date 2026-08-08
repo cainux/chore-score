@@ -29,12 +29,12 @@
 
 ## 5. Verify on the panel
 
-- [ ] 5.1 Deploy and force a panel refresh
-- [ ] 5.2 Photograph the result and confirm against **real task content**, not a synthetic sentence — the capture that chose these values used one fixed-position string, and real bullets wrap
-- [ ] 5.3 Re-measure stem widths from the new capture and confirm the single-pixel population is gone at bullet size
-- [ ] 5.4 Confirm a bullet containing `**bold**` still reads as emphasised on the wall
-- [ ] 5.5 Record what the panel said in design.md — including anything it overturned — following the practice the archived changes established
+- [x] 5.1 Deploy and force a panel refresh
+- [x] 5.2 Photograph the result and confirm against **real task content**, not a synthetic sentence — confirmed against Tilly's and Ally's real lists
+- [x] 5.3 Re-measure stem widths from the new capture and confirm the single-pixel population is gone at bullet size — down from 19% to 4%, modal stem consistently 2px; not zero the way the synthetic test card was, and that gap is recorded rather than smoothed over
+- [x] 5.4 Confirm a bullet containing `**bold**` still reads as emphasised on the wall — yes perceptually; measured separation is real but softer than the test card predicted (see design.md)
+- [x] 5.5 Record what the panel said in design.md — including anything it overturned — added "What the panel found, deployed against real content" after D28
 
 ## 6. Clean up
 
-- [ ] 6.1 Delete the `spike/bullet-weight` branch once its measurements are captured in design.md
+- [x] 6.1 Delete the `spike/bullet-weight` branch once its measurements are captured in design.md

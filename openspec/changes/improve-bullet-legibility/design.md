@@ -109,6 +109,30 @@ The 32px stays documented here as the lever to reach for if the seven-line limit
 
 _A second cost, easy to miss:_ at 22px a bullet holds roughly 34 characters per line rather than 38, so the change is worth slightly less than one line of capacity, not exactly one. Checked against current production content, which still renders in 5 and 6 lines.
 
+### What the panel found, deployed against real content
+
+D25–D27 were validated against a synthetic test card: one fixed-position sentence, repeated at eight size/weight combinations, deployed on `spike/bullet-weight`. Once shipped to production, a second capture — real bullets, real wraps, one real `**bold**` (Tilly's `**One Man went to Mow**`) — gave a chance to check the numbers against text nobody constructed for the purpose.
+
+**The 1px population dropped as predicted, though not to the test card's zero.**
+
+| | 20px/400 (before) | 22px/400 (after, real content) |
+| - | - | - |
+| 1px stems | 19% | **4%** |
+| modal stem | split 1px/2px | **2px, consistently** |
+
+4% is not the test card's 0%. Real content carries more letterforms and kerning pairs than one sentence at a fixed x-position, so some residual single-pixel population was expected. What matters is the shape of the distribution: 4% against a 71% mode at 2px is occasional, not characteristic — which is the distinction D25 was written to fix, and it held.
+
+**Emphasis separates in the direction predicted, but more softly than the test card suggested.** The test card's isolated body/emphasis pair (D27) measured a clean modal split, 2px against 3px. Real content gives:
+
+| | modal stem | 2px | 3px |
+| - | - | - | - |
+| all body (400), aggregated across both children | 2px | 71% | 12% |
+| `**One Man went to Mow**` (500) | 2px | 47% | 36% |
+
+The bold line shifts real mass from 2px toward 3px — three times the 3px share of body text — but does not flip the mode the way the synthetic pair implied it would. Looking at the photo, the line reads visibly heavier than its neighbours, so it works perceptually. The measurement is recorded as softer than predicted rather than rounded up to "confirmed," because the gap between a synthetic sample and a natural one is itself worth knowing the size of, the next time a decision here leans on a test card built from a single sentence.
+
+_Not retested: the eighth line._ Real content still renders in 5 and 6 lines, so D28's line-budget argument was not exercised by this capture either.
+
 ## Data flow
 
 ```mermaid
