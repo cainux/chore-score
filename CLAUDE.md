@@ -4,23 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-**Built, deployed and running on the wall.** Production is <https://chores.oha.me>, and `/display` on it is what the TRMNL panel captures every 15 minutes. Four changes so far — `add-chore-chart`, `add-live-display-preview`, `remove-today-panel`, and `improve-bullet-legibility` — are complete and archived.
+**Built, deployed and running on the wall.** Production is <https://chores.oha.me>, and `/display` on it is what the TRMNL panel captures every 15 minutes. Completed changes live under `openspec/changes/archive/`; `openspec list` shows anything still in progress.
 
 Two places hold the written record, and they answer different questions:
 
-- **`openspec/specs/*/spec.md`** — what the system does now. Four capabilities, 52 requirements: `chore-tracking` (13), `chart-display` (11), `parent-admin` (19), `access-control` (9). This is the living contract; keep it true.
-- **`openspec/changes/archive/*/`** — **why**, which the specs deliberately do not carry. Four archived changes, each with a `design.md` holding the numbered decisions that code comments and this file cite as "design.md D9" and the like. Several were reversed by the physical panel — or by how the admin page was actually used — and record both the original reasoning and what overturned it, so read the whole entry rather than skimming for the current answer.
+- **`openspec/specs/*/spec.md`** — what the system does now, across the `chore-tracking`, `chart-display`, `parent-admin`, and `access-control` capabilities. This is the living contract; keep it true.
+- **`openspec/changes/archive/*/`** — **why**, which the specs deliberately do not carry. Each archived change has a `design.md` holding numbered decisions that code comments and this file cite as "design.md D9" and the like. Several were reversed by the physical panel — or by how the admin page was actually used — and record both the original reasoning and what overturned it, so read the whole entry rather than skimming for the current answer.
 
-**The decision series is continuous across the archives, and citations are bare numbers.** So the number tells you which file:
+**The decision series is continuous across the archives, and citations are bare numbers** — a comment can say "design.md D19" without saying which archive. Don't keep a table mapping numbers to files here; it would need hand-updating on every archive and would silently go stale, the way the change list and requirement counts used to. Grep instead:
 
-| Decisions | Archive | Covers |
-| --------- | ------- | ------ |
-| D1–D15 | `2026-08-02-add-chore-chart/design.md` | the schema, the gates, the fixed canvas, the trophy, the fonts |
-| D16–D22 | `2026-08-02-add-live-display-preview/design.md` | the shared canvas and view builder, and the live preview |
-| D23–D24 | `2026-08-02-remove-today-panel/design.md` | removing the dedicated today control in favor of the correction grid alone |
-| D25–D28 | `2026-08-08-improve-bullet-legibility/design.md` | text is rasterised 1-bit on the panel, so bullet legibility is a stem-width question rather than a colour question; bullets moved to 22px/400 with emphasis at 500 |
+```sh
+grep -rn '^### D19\.' openspec/changes/archive/*/design.md                                        # find where D19 lives
+grep -rhoE '^### D[0-9]+\.' openspec/changes/archive/*/design.md | grep -oE '[0-9]+' | sort -n | tail -1   # the current high-water mark
+```
 
-A citation of "design.md D19" means the second file. The numbering carries on rather than restarting precisely so that stays unambiguous — keep continuing it, at D29.
+Numbering carries on rather than restarting per archive precisely so a citation stays unambiguous — when a new change's design.md adds decisions, continue from whatever that second command reports, don't restart at D1.
 
 Read `design.md` before changing anything on the display or in the date module. It makes decisions — absence-as-state schema, two asymmetric auth gates, a fixed-pixel canvas, a trophy with no notion of today — that are not recoverable from the source tree, and that look arbitrary until you know what they cost to learn.
 
@@ -127,7 +125,7 @@ Storage is three tables (`children`, `day_marks`, `task_lists`). `day_marks` has
 
 Changes are spec-driven through the `openspec` CLI (v1.7.0) and its skills (`openspec-propose`, `openspec-apply-change`, `openspec-update-change`, `openspec-sync-specs`, `openspec-archive-change`, `openspec-explore`), also available as `/opsx:*` commands. Work implements `tasks.md`; when behaviour changes, update the change's artifacts rather than editing code alone. `openspec/config.yaml` requires design docs to include a mermaid data-flow diagram.
 
-New work starts with `/opsx:propose`, which creates a change under `openspec/changes/` with `openspec/specs/` as its baseline — a **modified** capability needs a delta spec whose folder name matches the existing one. There are no active changes right now.
+New work starts with `/opsx:propose`, which creates a change under `openspec/changes/` with `openspec/specs/` as its baseline — a **modified** capability needs a delta spec whose folder name matches the existing one. Run `openspec list` for whatever is currently active, rather than trusting a status line here.
 
 The archived changes are worth imitating in one respect: when the panel or the desk overturned a decision, the reversal was written into `design.md` alongside the original argument rather than replacing it, and the superseded tasks were annotated with what reversed them instead of being deleted. `add-live-display-preview` carries a "What the desk found" section doing the same for what its implementation turned up. That is why "why is the trophy so plain?" has an answer. Keep doing it.
 
