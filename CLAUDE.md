@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-**Built, deployed and running on the wall.** Production is <https://chores.oha.me>, and `/display` on it is what the TRMNL panel captures every 15 minutes. Three changes so far — `add-chore-chart`, `add-live-display-preview`, and `remove-today-panel` — are complete and archived.
+**Built, deployed and running on the wall.** Production is <https://chores.oha.me>, and `/display` on it is what the TRMNL panel captures every 15 minutes. Four changes so far — `add-chore-chart`, `add-live-display-preview`, `remove-today-panel`, and `improve-bullet-legibility` — are complete and archived.
 
 Two places hold the written record, and they answer different questions:
 
 - **`openspec/specs/*/spec.md`** — what the system does now. Four capabilities, 52 requirements: `chore-tracking` (13), `chart-display` (11), `parent-admin` (19), `access-control` (9). This is the living contract; keep it true.
-- **`openspec/changes/archive/*/`** — **why**, which the specs deliberately do not carry. Three archived changes, each with a `design.md` holding the numbered decisions that code comments and this file cite as "design.md D9" and the like. Several were reversed by the physical panel — or by how the admin page was actually used — and record both the original reasoning and what overturned it, so read the whole entry rather than skimming for the current answer.
+- **`openspec/changes/archive/*/`** — **why**, which the specs deliberately do not carry. Four archived changes, each with a `design.md` holding the numbered decisions that code comments and this file cite as "design.md D9" and the like. Several were reversed by the physical panel — or by how the admin page was actually used — and record both the original reasoning and what overturned it, so read the whole entry rather than skimming for the current answer.
 
 **The decision series is continuous across the archives, and citations are bare numbers.** So the number tells you which file:
 
@@ -18,8 +18,9 @@ Two places hold the written record, and they answer different questions:
 | D1–D15 | `2026-08-02-add-chore-chart/design.md` | the schema, the gates, the fixed canvas, the trophy, the fonts |
 | D16–D22 | `2026-08-02-add-live-display-preview/design.md` | the shared canvas and view builder, and the live preview |
 | D23–D24 | `2026-08-02-remove-today-panel/design.md` | removing the dedicated today control in favor of the correction grid alone |
+| D25–D28 | `2026-08-08-improve-bullet-legibility/design.md` | text is rasterised 1-bit on the panel, so bullet legibility is a stem-width question rather than a colour question; bullets moved to 22px/400 with emphasis at 500 |
 
-A citation of "design.md D19" means the second file. The numbering carries on rather than restarting precisely so that stays unambiguous — keep continuing it, at D25.
+A citation of "design.md D19" means the second file. The numbering carries on rather than restarting precisely so that stays unambiguous — keep continuing it, at D29.
 
 Read `design.md` before changing anything on the display or in the date module. It makes decisions — absence-as-state schema, two asymmetric auth gates, a fixed-pixel canvas, a trophy with no notion of today — that are not recoverable from the source tree, and that look arbitrary until you know what they cost to learn.
 
