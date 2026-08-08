@@ -37,7 +37,23 @@ Two candidates are proposed in `proposal.md`, and this design deliberately does 
 - `.bold` weight 600 instead of 500 (more rounding headroom per D25's standalone 22px/600 numbers, at the cost of a new font weight to fetch).
 - Letter-spacing added to `.bold`, which is a whole-pixel layout property rather than a per-glyph rounding outcome, and so should not be sensitive to which letters make up the run — at the cost of being an untested mechanism on this panel at all.
 
-D26 is the reason this document does not pick one now: a prediction about stem rounding, made by reasoning from a table instead of the panel, was wrong once already. Task 3 below runs both candidates (and, if neither alone is sufficient, their combination) through the D29 test card on the physical panel, and this section will be updated with the measured tables and the choice — in the style of D26/D27's own tables and the archived change's "What the panel found" section — once that capture exists. Recording the decision here after measurement, rather than in a follow-up document, keeps this failure mode's full history in one place the way the rest of this series does.
+D26 is the reason this document does not pick one now: a prediction about stem rounding, made by reasoning from a table instead of the panel, was wrong once already. Task 3 below runs both candidates through the D29 test card on the physical panel, and this section will be updated with the measured tables and the choice — in the style of D26/D27's own tables and the archived change's "What the panel found" section — once that capture exists. Recording the decision here after measurement, rather than in a follow-up document, keeps this failure mode's full history in one place the way the rest of this series does.
+
+**Measured.** The D29 test card was deployed to `/display` on `spike/bullet-emphasis-weight` and captured two ways: a phone photo of the physical panel, and — new to this change — the raw 800×480 2-bit PNG TRMNL's own pipeline produced, pulled directly from its asset storage. The raw capture is the more trustworthy source: it is the exact bitmap the panel rasterised, with none of a phone photo's uneven lighting or lens softness. Run-length analysis of its horizontal black-pixel spans, pooled per line (the same measure D25's stem tables used):
+
+| | n runs | modal | 2px share | 3px share |
+| --- | --- | --- | --- | --- |
+| body 400 (reference: "Hands together") | 273 | 2px | 71.1% | 7.7% |
+| "One Man went to Mow" at 500 | 398 | **2px** | 45.0% | 34.7% |
+| "Dozen a Day" at 500 | 191 | **2px** | 47.1% | 29.8% |
+| "One Man went to Mow" at 600 | 393 | **3px** | 18.8% | 55.2% |
+| "Dozen a Day" at 600 | 189 | **3px** | 16.9% | 53.4% |
+
+Letter-spacing produced byte-identical run-length distributions to its non-spaced counterpart at the same weight (confirmed for both 500 and 600) — expected, since spacing moves glyphs apart without changing any glyph's own outline, but worth stating plainly: **letter-spacing has no effect on stem width and cannot fix a rasterisation-rounding problem by itself.** It is dropped from further consideration for that reason, not measured further.
+
+**This revises part of the D29 hypothesis.** The theory was that "Dozen a Day"'s round letterforms would round down at a weight where "One Man went to Mow"'s wide letterforms round up — a per-glyph split. The raw-bitmap numbers do not show that split: at weight 500 *both* phrases are modal 2px, statistically close to each other (45.0/34.7 vs 47.1/29.8) and both still short of flipping the mode away from body's own 2px. Neither phrase's emphasis clears the bar at 500; "One Man went to Mow" merely *looked* more convincingly bold in the phone photo, which is a fact about photographing thick strokes versus thin ones under uneven light, not about the source bitmap. At weight 600, both phrases flip cleanly to modal 3px, at almost identical concentration (55.2% vs 53.4%). The failure this change was opened to fix is real and visible on the wall, but the mechanism is simpler than D29 proposed: 500 is just short of the rounding threshold for typical bullet content in general, not specifically for round letterforms, and 600 clears it for both letterform types tested.
+
+**Decision: `.bold` moves to weight 600. No letter-spacing.** It is the smaller change of the two candidates that actually works — no new visual grammar, just enough weight to clear the same rounding boundary D27 already identified, now with headroom on both sides of the letterform spread rather than a boundary sitting inside it. `inter-700-italic` stays retired (D27); `***bold italic***` moves to `inter-600-italic`, already fetched for this spike and kept if this decision holds after the real-content check in task 4.
 
 ## Data flow
 
@@ -45,7 +61,7 @@ D26 is the reason this document does not pick one now: a prediction about stem r
 flowchart TB
     subgraph worker["Cloudflare Worker"]
         VIEW["buildDisplayView(db, now)"]
-        PANEL["Panel.svelte<br/>.bold — weight TBD by D30"]
+        PANEL["Panel.svelte<br/>.bold — weight 600 (D30)"]
         MD["inlineSegments()<br/>**bold** → .bold"]
     end
 
@@ -67,15 +83,14 @@ flowchart TB
     CHROME -->|"glyphs: pure #000 / #FFF<br/>stem width per glyph"| QUANT
     QUANT --> WALL["TRMNL OG panel"]
 
-    WALL -->|"photograph, measure<br/>stem width per row"| MEASURE["Per-row modal-stem table<br/>(D29)"]
-    MEASURE -->|"choose weight/spacing"| DECIDE["D30: recorded here<br/>once measured"]
-    DECIDE -.->|"amend"| PANEL
+    WALL -->|"raw 800x480 PNG pulled from<br/>TRMNL's own asset storage"| MEASURE["Per-row modal-stem table<br/>(D30, measured)"]
+    MEASURE -->|"weight 600 clears the<br/>modal-2px→3px boundary"| DECIDE["D30: weight 600,<br/>no letter-spacing"]
+    DECIDE -.->|"amend if real content<br/>(task 4) disagrees"| PANEL
 
     style CHROME fill:#fff,stroke:#000,stroke-width:2px
-    style DECIDE stroke-dasharray: 5 5
 ```
 
-The loop back into `PANEL` is the point: unlike D25-D28, which measured once and shipped, this change's own test card is built from the failure it is trying to close, so the measurement step is expected to run at least twice — the synthetic card, then a real-content check — before D30 is filled in.
+The loop back into `PANEL` is still live: task 4 checks this decision against real content the way the archived change's "What the panel found" section checked D27, and this section gets amended again if that check disagrees — the dotted arrow stays until that happens. What changed from the plan is the measurement source: rather than a phone photograph of the physical panel, TRMNL's own asset storage turned out to serve the exact raw capture its pipeline produced, giving a clean bitmap to measure instead of one degraded by camera lighting and lens softness. That is also what made the D29 hypothesis revision above visible — a phone photo alone would have shown "One Man went to Mow" reading bold and "Dozen a Day" not, and stopped there.
 
 ## Risks / Trade-offs
 

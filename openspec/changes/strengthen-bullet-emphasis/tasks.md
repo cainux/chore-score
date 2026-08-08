@@ -1,15 +1,15 @@
 ## 1. Letterform-stress test card (D29)
 
 - [x] 1.1 Build a test card with at least two emphasis rows at each weight candidate under consideration: a wide-letterform row (e.g. "One Man went to Mow") and a round-letterform row (e.g. "Dozen a Day"), each paired with plain body text at the shipped 22px/400 for comparison. Built as `src/lib/display/SpikeCard.svelte` on branch `spike/bullet-emphasis-weight` (local only, not pushed — never merges to main), comparing all four D30 candidates (500, 600, 500+spacing, 600+spacing) against both phrases in one capture.
-- [ ] 1.2 Deploy the test card to a spike route (following the precedent of `spike/bullet-weight` in `improve-bullet-legibility`).
-- [ ] 1.3 Force a panel refresh and capture the physical panel.
+- [x] 1.2 Deploy the test card to a spike route (following the precedent of `spike/bullet-weight` in `improve-bullet-legibility`). Deployed `spike/bullet-emphasis-weight` straight to `chores.oha.me` (this app has one route; there is no separate spike environment), overriding `/display` temporarily.
+- [x] 1.3 Force a panel refresh and capture the physical panel. Captured two ways: a phone photo, and — better — the raw 800×480 2-bit PNG pulled directly from TRMNL's own asset storage (the exact bitmap its pipeline produced, no camera lighting/lens artifacts).
 
 ## 2. Measure candidates (D30)
 
-- [ ] 2.1 Measure per-row modal stem width for `.bold` at weight 600, separately for the wide-letterform row and the round-letterform row.
-- [ ] 2.2 Measure per-row modal stem width for `.bold` at weight 500 with letter-spacing added, separately for both rows.
-- [ ] 2.3 If neither candidate alone separates both rows cleanly, measure the combination (weight 600 + letter-spacing).
-- [ ] 2.4 Record the measured tables in `design.md` under D30, and state which setting is chosen and why — in the style of D26/D27's tables.
+- [x] 2.1 Measure per-row modal stem width for `.bold` at weight 600, separately for the wide-letterform row and the round-letterform row. Both flip cleanly to modal 3px (55.2% / 53.4%) against body's modal 2px.
+- [x] 2.2 Measure per-row modal stem width for `.bold` at weight 500 with letter-spacing added, separately for both rows. Identical run-length distribution to non-spaced 500 — letter-spacing does not affect stem width at all, as expected once measured.
+- [x] 2.3 If neither candidate alone separates both rows cleanly, measure the combination (weight 600 + letter-spacing). Not needed: 600 alone separates both rows cleanly, and letter-spacing has no bearing on the stem-width mechanism, so a combination adds nothing over 600 alone.
+- [x] 2.4 Record the measured tables in `design.md` under D30, and state which setting is chosen and why — in the style of D26/D27's tables. Recorded, including a revision to the D29 hypothesis: the raw bitmap shows both phrases modal-2px at 500 (not a letterform-dependent split as predicted) and both modal-3px at 600.
 
 ## 3. Implement the chosen setting
 
