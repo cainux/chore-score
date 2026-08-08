@@ -44,4 +44,5 @@ context: |
 
 rules:
   design:
-    - Include a mermaid diagram of the data flow
+    - Use ASCII or Mermaid diagrams where appropriate to best explain the
+      design to readers
