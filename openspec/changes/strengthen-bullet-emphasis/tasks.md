@@ -1,6 +1,6 @@
 ## 1. Letterform-stress test card (D29)
 
-- [ ] 1.1 Build a test card with at least two emphasis rows at each weight candidate under consideration: a wide-letterform row (e.g. "One Man went to Mow") and a round-letterform row (e.g. "Dozen a Day"), each paired with plain body text at the shipped 22px/400 for comparison.
+- [x] 1.1 Build a test card with at least two emphasis rows at each weight candidate under consideration: a wide-letterform row (e.g. "One Man went to Mow") and a round-letterform row (e.g. "Dozen a Day"), each paired with plain body text at the shipped 22px/400 for comparison. Built as `src/lib/display/SpikeCard.svelte` on branch `spike/bullet-emphasis-weight` (local only, not pushed — never merges to main), comparing all four D30 candidates (500, 600, 500+spacing, 600+spacing) against both phrases in one capture.
 - [ ] 1.2 Deploy the test card to a spike route (following the precedent of `spike/bullet-weight` in `improve-bullet-legibility`).
 - [ ] 1.3 Force a panel refresh and capture the physical panel.
 
