@@ -232,7 +232,7 @@ Emphasised text SHALL be drawn from a supplied face rather than left to be synth
 
 Because text is rasterised 1-bit, its legibility SHALL be treated as a question of **stem width landing consistently on whole pixels**, not of colour. Body text SHALL be set at a combination of size and weight whose stems round consistently. A setting that produces a substantial population of single-pixel stems SHALL NOT be used: a stroke that renders 1px on one letter and 2px on the next reads as damaged text, and a 1px stroke is close to invisible against a background that is grey rather than white.
 
-Emphasis SHALL be separated from surrounding text by enough weight that the two differ in stem width after rasterisation. A weight step that leaves emphasis and body at the same rendered stem width does not mark anything, however different the two look before conversion.
+Emphasis SHALL be separated from surrounding text by enough weight (and, if weight alone is insufficient, spacing) that the two differ visibly after rasterisation **regardless of the letterforms making up the emphasised run**. Stem-width rounding after 1-bit rasterisation happens per glyph: a run dense in wide letterforms (M, W, N) can round up to a heavier stem at a given weight while a run of mostly round, thin-stemmed letters (o, e, a, z) rounds back down at that same weight. A weight step validated only against one representative sentence, or against content that happens to favour wide letterforms, does not establish that the step holds for emphasis in general.
 
 #### Scenario: Converted to the panel's palette
 
@@ -244,10 +244,10 @@ Emphasis SHALL be separated from surrounding text by enough weight that the two 
 - **WHEN** task bullet text is captured by the panel's screenshotting browser
 - **THEN** its stems are a consistent whole number of pixels across the letters of a word, with no letters reduced to single-pixel strokes
 
-#### Scenario: Emphasis survives 1-bit rasterisation
+#### Scenario: Emphasis survives 1-bit rasterisation regardless of letterforms
 
 - **WHEN** a bullet containing `**bold**` is captured at bullet size
-- **THEN** the emphasised run renders with a visibly greater stem width than the text around it
+- **THEN** the emphasised run renders with a visibly greater stem width than the text around it, whether the run is composed of wide letterforms (e.g. "One Man went to Mow") or of mostly round, thin-stemmed letterforms (e.g. "Dozen a Day")
 
 #### Scenario: The render stamp is legible on the panel
 
