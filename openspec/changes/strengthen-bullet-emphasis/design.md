@@ -92,6 +92,20 @@ flowchart TB
 
 The loop back into `PANEL` is still live: task 4 checks this decision against real content the way the archived change's "What the panel found" section checked D27, and this section gets amended again if that check disagrees — the dotted arrow stays until that happens. What changed from the plan is the measurement source: rather than a phone photograph of the physical panel, TRMNL's own asset storage turned out to serve the exact raw capture its pipeline produced, giving a clean bitmap to measure instead of one degraded by camera lighting and lens softness. That is also what made the D29 hypothesis revision above visible — a phone photo alone would have shown "One Man went to Mow" reading bold and "Dozen a Day" not, and stopped there.
 
+### What the real-content check found
+
+Deployed weight 600 to production and pulled the raw capture directly from TRMNL's asset storage again, this time of Tilly's actual list rather than the synthetic card. Same run-length method as D30:
+
+| | n runs | modal | 2px share | 3px share |
+| --- | --- | --- | --- | --- |
+| "11 part 2 (hands together)" (body) | 431 | 2px | 67.5% | 10.4% |
+| "12 (hands together)" (body) | 347 | 2px | 73.8% | 7.8% |
+| "Hands together" (body) | 273 | 2px | 71.1% | 7.7% |
+| **"Dozen a Day" (bold)** | 189 | **3px** | 16.9% | 53.4% |
+| **"One Man went to Mow" (bold)** | 393 | **3px** | 18.8% | 55.2% |
+
+**No gap between prediction and reality this time** — the numbers for both bold lines are identical to the spike card's, to one decimal place. That is a departure from D25-D28's own experience, where the real-content check found a softer result than the synthetic test card predicted. The difference is methodological, not a fluke: D25's original card used one sentence invented for the purpose, so its prediction had to generalise to different words. This change's card used the two real phrases verbatim, so there was nothing to generalise — confirming the identical bitmap is largely confirming that production serves what the code says it should, which is still worth doing but is a narrower claim than D25's cross-content prediction was. The three body lines shown above (none of them the phrase used to tune anything) are the closer analogue to that older check, and they land in the same 67-74%-at-2px range body always has, so the boundary is not being crossed by ordinary content either.
+
 ## Risks / Trade-offs
 
 **The two-row test card still isn't every possible word.** → D25/D26's own experience is that synthetic cards under-predict real content's softness. Mitigation: same as the prior change — deploy, capture real content (not just the spike), and record the gap between prediction and reality rather than assuming the spike settles it. `**Dozen a Day**` and `**One Man went to Mow**` remain in production regardless, so the real-content check is close to free.

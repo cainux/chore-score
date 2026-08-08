@@ -19,9 +19,9 @@
 
 ## 4. Verify against real content
 
-- [ ] 4.1 Deploy to production and force a panel refresh.
-- [ ] 4.2 Capture the physical panel and confirm both `**Dozen a Day**` and `**One Man went to Mow**` now render with a visibly greater stem width than the body text around them.
-- [ ] 4.3 Record the real-content capture's numbers in `design.md`, in the style of the prior change's "What the panel found" section, noting any gap between the spike's prediction and the real-content result.
+- [x] 4.1 Deploy to production and force a panel refresh.
+- [x] 4.2 Capture the physical panel and confirm both `**Dozen a Day**` and `**One Man went to Mow**` now render with a visibly greater stem width than the body text around them. Confirmed both ways: a phone photo (both read clearly bold) and the raw TRMNL capture (both modal 3px against three different body lines all modal 2px).
+- [x] 4.3 Record the real-content capture's numbers in `design.md`, in the style of the prior change's "What the panel found" section, noting any gap between the spike's prediction and the real-content result. No gap this time — the spike card used the real phrases verbatim, so the numbers matched to one decimal place; recorded why that differs from D25-D28's own experience of a softer real-content result.
 
 ## 5. Sync and close out
 
