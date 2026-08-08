@@ -38,22 +38,23 @@ export const NAME_MAX_GRAPHEMES = 16;
 /**
  * Bullets the display renders before clipping.
  *
- * The hard number underneath both of these is **8 rendered lines** — the task
- * block is 200px of 25px line boxes (design.md D6). It is lines and not bullets
- * because bullets wrap: at 20px in a 376px column a bullet runs to about 38
- * characters, and a real one like `Exercise 11 part 2 - hands together (thumb
- * crossover)` takes two of the eight.
+ * The hard number underneath both of these is **7 rendered lines** — the task
+ * block is 196px of 28px line boxes (design.md D6, D28). It is lines and not
+ * bullets because bullets wrap: at 22px in a 376px column a bullet runs to
+ * about 34 characters, and a real one like `Exercise 11 part 2 - hands
+ * together (thumb crossover)` takes two of the seven.
  *
  * So `MAX` is the ceiling for a list of short bullets, and the warning fires at
- * `COMFORTABLE` to leave room for the ones that wrap. Both were higher before
- * the type grew; on the panel, 16px read as too small to be worth the extra
- * lines it bought.
+ * `COMFORTABLE` to leave room for the ones that wrap. This dropped from 8/6 to
+ * 7/5 when the type grew from 20px to 22px (design.md D25-D28,
+ * improve-bullet-legibility) — the eighth line was budget nothing had used, so
+ * spending it on legible bullets cost nothing real.
  *
  * The display clips as a backstop and the admin page warns past the comfortable
  * count without blocking the save (D12).
  */
-export const BULLETS_COMFORTABLE = 6;
-export const BULLETS_MAX = 8;
+export const BULLETS_COMFORTABLE = 5;
+export const BULLETS_MAX = 7;
 
 /**
  * The display typeface stack.
@@ -63,7 +64,16 @@ export const BULLETS_MAX = 8;
  * face follows the text face so emoji in names render as line art rather than
  * as colour glyphs mangled into a smudge, or as tofu (D15).
  *
- * Settled at step 8.4: it survives 2-bit conversion at every size the chart
- * uses, down to the 13px weekday letters, so nothing heavier was needed.
+ * Settled at step 8.4: "it survives 2-bit conversion at every size the chart
+ * uses, down to the 13px weekday letters, so nothing heavier was needed." That
+ * was wrong at bullet size. The panel rasterises text with anti-aliasing off,
+ * so a stem's legibility is a question of whether it rounds to a consistent
+ * whole number of pixels — not a question the four-grey-level rule this note
+ * was written against actually governs. Measured on a production capture, the
+ * 20px/400 bullet size had a stem population that was 19% single-pixel and
+ * inconsistent within the same word; 24px/700 headings measured 3-4px and were
+ * fine. Corrected rather than replaced, per this project's practice of keeping
+ * a superseded decision legible alongside what overturned it (design.md
+ * D25-D26, improve-bullet-legibility).
  */
 export const DISPLAY_FONT_STACK = "'ChoreText', 'ChoreEmoji', sans-serif";

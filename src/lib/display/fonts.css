@@ -20,6 +20,14 @@
 
 @font-face {
 	font-family: 'ChoreText';
+	src: url('/fonts/inter-500.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: block;
+}
+
+@font-face {
+	font-family: 'ChoreText';
 	src: url('/fonts/inter-700.woff2') format('woff2');
 	font-weight: 700;
 	font-style: normal;
@@ -34,6 +42,12 @@
  * levels is exactly the kind of detail a 2-bit panel loses — the emphasis stops
  * reading as emphasis. 25K each, and only fetched when a bullet actually uses
  * one, on the same rule that keeps the emoji face off most renders.
+ *
+ * 500, not 700: the panel rasterises text with anti-aliasing off, and a 700
+ * body-bold at the 22px bullet size lands on the same modal stem width as a 700
+ * emphasis run, so the two stop being distinguishable after conversion
+ * (design.md D25-D27, improve-bullet-legibility). Emphasis is one weight step
+ * above whatever body is, not a fixed weight.
  */
 @font-face {
 	font-family: 'ChoreText';
@@ -45,8 +59,8 @@
 
 @font-face {
 	font-family: 'ChoreText';
-	src: url('/fonts/inter-700-italic.woff2') format('woff2');
-	font-weight: 700;
+	src: url('/fonts/inter-500-italic.woff2') format('woff2');
+	font-weight: 500;
 	font-style: italic;
 	font-display: block;
 }

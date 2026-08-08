@@ -286,9 +286,25 @@ describe('the panel canvas', () => {
 			const italic = li.querySelector('.italic')!;
 
 			expect(bold.textContent).toBe('F#');
-			expect(getComputedStyle(bold).fontWeight).toBe('700');
+			expect(getComputedStyle(bold).fontWeight).toBe('500');
 			expect(italic.textContent).toBe('hold');
 			expect(getComputedStyle(italic).fontStyle).toBe('italic');
+		});
+
+		it('weighs emphasised text heavier than the body around it', async () => {
+			// A relationship, not a hard-coded weight: the panel rasterises text
+			// with anti-aliasing off, so what matters is that emphasis and body
+			// round to different stem widths after conversion, not that emphasis
+			// is any particular number. A body weight raised to meet or pass this
+			// value would silently stop reading as emphasised (design.md D27,
+			// improve-bullet-legibility).
+			const li = bulletHtml('play the **F#** and hold it');
+			const body = li.querySelector('span:not(.bold)')!;
+			const bold = li.querySelector('.bold')!;
+
+			expect(Number(getComputedStyle(bold).fontWeight)).toBeGreaterThan(
+				Number(getComputedStyle(body).fontWeight)
+			);
 		});
 
 		it('leaves no gap where a delimiter was', async () => {

@@ -12,18 +12,25 @@ complete in a fresh clone.
 | File                     | Source                                                   | Size |
 | ------------------------ | -------------------------------------------------------- | ---- |
 | `inter-400.woff2`        | `@fontsource/inter` — `inter-latin-400-normal`            | 24K  |
+| `inter-500.woff2`        | `@fontsource/inter` — `inter-latin-500-normal`            | 24K  |
 | `inter-700.woff2`        | `@fontsource/inter` — `inter-latin-700-normal`            | 24K  |
 | `inter-400-italic.woff2` | `@fontsource/inter` — `inter-latin-400-italic`            | 25K  |
-| `inter-700-italic.woff2` | `@fontsource/inter` — `inter-latin-700-italic`            | 26K  |
+| `inter-500-italic.woff2` | `@fontsource/inter` — `inter-latin-500-italic`            | 25K  |
 | `noto-emoji-400.woff2`   | `@fontsource/noto-emoji` — `noto-emoji-emoji-400-normal`  | 464K |
+
+There is no `inter-700-italic.woff2`. `***bold italic***` is drawn from
+`inter-500-italic.woff2` — emphasis is one weight step above body, not a fixed
+700 (design.md D25-D27, `improve-bullet-legibility`), and body never exceeds
+500 on this page.
 
 To refresh them after a package update:
 
 ```sh
 cp node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2 static/fonts/inter-400.woff2
+cp node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2 static/fonts/inter-500.woff2
 cp node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2 static/fonts/inter-700.woff2
 cp node_modules/@fontsource/inter/files/inter-latin-400-italic.woff2 static/fonts/inter-400-italic.woff2
-cp node_modules/@fontsource/inter/files/inter-latin-700-italic.woff2 static/fonts/inter-700-italic.woff2
+cp node_modules/@fontsource/inter/files/inter-latin-500-italic.woff2 static/fonts/inter-500-italic.woff2
 cp node_modules/@fontsource/noto-emoji/files/noto-emoji-emoji-400-normal.woff2 static/fonts/noto-emoji-400.woff2
 ```
 

@@ -154,16 +154,25 @@
 		margin: 0;
 		padding-left: 0;
 		list-style: none;
-		/* Exactly 8 lines at the line height below. A whole number of them, so a
+		/* Exactly 7 lines at the line height below. A whole number of them, so a
 		   clipped list ends on a line that is fully drawn rather than on one
-		   sliced through the middle. */
-		height: 200px;
+		   sliced through the middle. Dropped from 8 when the type grew from 20px
+		   to 22px (design.md D25-D28, improve-bullet-legibility): the extra line
+		   was budget nothing had used, and the panel had never rendered past 6. */
+		height: 196px;
 		overflow: hidden;
 	}
 
 	.task-block li {
-		font-size: 20px;
-		line-height: 25px;
+		/* 22px/400, not 20px/400. The panel captures this page with text
+		   anti-aliasing off, so a stem's width is whatever it rounds to in whole
+		   pixels — at 20px that rounded inconsistently, 1px on one letter and 2px
+		   on the next in the same word, which read as damaged text rather than as
+		   small text. 22px measured the cleanest stem distribution of every
+		   size/weight combination tried on the physical panel (design.md D25-D26,
+		   improve-bullet-legibility). */
+		font-size: 22px;
+		line-height: 28px;
 		/* Wrapped, not cut off: a bullet ending in "(thumb cr…" tells a child
 		   less than nothing. Type size is still fixed — surplus is clipped rather
 		   than shrunk, because shrinking costs legibility on every bullet to fit
@@ -171,9 +180,14 @@
 		overflow-wrap: anywhere;
 	}
 
-	/* Inline emphasis, the only markup the display reads ($lib/markdown). */
+	/* Inline emphasis, the only markup the display reads ($lib/markdown). One
+	   weight step above body (400), not a fixed 700: at this size and rasterised
+	   without anti-aliasing, a 700 emphasis run over a 600+ body lands on the same
+	   modal stem width as the body around it and stops reading as emphasis
+	   (design.md D27, improve-bullet-legibility). Matches the italic face
+	   registered in fonts.css. */
 	.bold {
-		font-weight: 700;
+		font-weight: 500;
 	}
 
 	.italic {
