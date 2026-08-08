@@ -286,7 +286,7 @@ describe('the panel canvas', () => {
 			const italic = li.querySelector('.italic')!;
 
 			expect(bold.textContent).toBe('F#');
-			expect(getComputedStyle(bold).fontWeight).toBe('500');
+			expect(getComputedStyle(bold).fontWeight).toBe('600');
 			expect(italic.textContent).toBe('hold');
 			expect(getComputedStyle(italic).fontStyle).toBe('italic');
 		});

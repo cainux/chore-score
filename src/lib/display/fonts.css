@@ -20,8 +20,8 @@
 
 @font-face {
 	font-family: 'ChoreText';
-	src: url('/fonts/inter-500.woff2') format('woff2');
-	font-weight: 500;
+	src: url('/fonts/inter-600.woff2') format('woff2');
+	font-weight: 600;
 	font-style: normal;
 	font-display: block;
 }
@@ -43,11 +43,12 @@
  * reading as emphasis. 25K each, and only fetched when a bullet actually uses
  * one, on the same rule that keeps the emoji face off most renders.
  *
- * 500, not 700: the panel rasterises text with anti-aliasing off, and a 700
- * body-bold at the 22px bullet size lands on the same modal stem width as a 700
- * emphasis run, so the two stop being distinguishable after conversion
- * (design.md D25-D27, improve-bullet-legibility). Emphasis is one weight step
- * above whatever body is, not a fixed weight.
+ * 600, not 700: the panel rasterises text with anti-aliasing off, and measuring
+ * the raw capture (not a phone photo) showed 500 never clears the modal-stem
+ * boundary that separates emphasis from body at this size, on any bullet
+ * content tried; 600 does (design.md D25-D27 and D29-D30,
+ * improve-bullet-legibility, strengthen-bullet-emphasis). Emphasis is one
+ * weight step above whatever body is, not a fixed weight.
  */
 @font-face {
 	font-family: 'ChoreText';
@@ -59,8 +60,8 @@
 
 @font-face {
 	font-family: 'ChoreText';
-	src: url('/fonts/inter-500-italic.woff2') format('woff2');
-	font-weight: 500;
+	src: url('/fonts/inter-600-italic.woff2') format('woff2');
+	font-weight: 600;
 	font-style: italic;
 	font-display: block;
 }

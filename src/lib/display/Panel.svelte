@@ -180,14 +180,16 @@
 		overflow-wrap: anywhere;
 	}
 
-	/* Inline emphasis, the only markup the display reads ($lib/markdown). One
-	   weight step above body (400), not a fixed 700: at this size and rasterised
-	   without anti-aliasing, a 700 emphasis run over a 600+ body lands on the same
-	   modal stem width as the body around it and stops reading as emphasis
-	   (design.md D27, improve-bullet-legibility). Matches the italic face
-	   registered in fonts.css. */
+	/* Inline emphasis, the only markup the display reads ($lib/markdown).
+	   600, not the 500 this started at: measuring the raw capture rather than a
+	   phone photo showed 500 leaves emphasis at the same modal stem width as
+	   body (2px) for ordinary bullet content, not just for round letterforms as
+	   first suspected — it never actually cleared the rounding boundary D27
+	   identified, on any content. 600 flips the mode to 3px reliably (design.md
+	   D29-D30, strengthen-bullet-emphasis). Matches the italic face registered
+	   in fonts.css. */
 	.bold {
-		font-weight: 500;
+		font-weight: 600;
 	}
 
 	.italic {

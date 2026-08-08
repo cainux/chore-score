@@ -13,9 +13,9 @@
 
 ## 3. Implement the chosen setting
 
-- [ ] 3.1 Update `.bold` in `src/lib/display/Panel.svelte` to the chosen weight and/or letter-spacing.
-- [ ] 3.2 If weight 600 is chosen, add the `inter-600` (and `inter-600-italic`, for `***bold italic***`) font files to `src/lib/display/fonts.css` and `static/fonts/`, updating the provenance table per the convention `fonts.css` documents; if weight 600 is not chosen, confirm no unused font file was added.
-- [ ] 3.3 Update `src/lib/display/Panel.svelte.spec.ts` assertions to the new weight/spacing value, including the "weighs emphasised text heavier than the body around it" test.
+- [x] 3.1 Update `.bold` in `src/lib/display/Panel.svelte` to the chosen weight and/or letter-spacing.
+- [x] 3.2 If weight 600 is chosen, add the `inter-600` (and `inter-600-italic`, for `***bold italic***`) font files to `src/lib/display/fonts.css` and `static/fonts/`, updating the provenance table per the convention `fonts.css` documents; if weight 600 is not chosen, confirm no unused font file was added. Removed `inter-500.woff2`/`inter-500-italic.woff2` too — nothing uses weight 500 anywhere on this page once `.bold` moves to 600.
+- [x] 3.3 Update `src/lib/display/Panel.svelte.spec.ts` assertions to the new weight/spacing value, including the "weighs emphasised text heavier than the body around it" test. That test needed no change — it already asserts a relationship, not a hard-coded weight, so it caught nothing when the value changed. Only the one hard-coded `'500'` assertion needed updating, to `'600'`. `pnpm check`, `pnpm lint`, and all three unit projects (115+38+59) pass.
 
 ## 4. Verify against real content
 
