@@ -27,4 +27,4 @@
 
 - [x] 5.1 Run `pnpm check`, `pnpm lint`, `pnpm test`. 0 errors, 0 warnings, 272/272 tests pass (115 server + 38 client + 59 workers + 60 e2e).
 - [x] 5.2 Sync the delta spec in `specs/chart-display/spec.md` to `openspec/specs/chart-display/spec.md`.
-- [ ] 5.3 Archive the change.
+- [x] 5.3 Archive the change.
