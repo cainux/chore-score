@@ -15,10 +15,10 @@
 
 ## 3. Verify on the panel
 
-- [ ] 3.1 Check `/admin/preview` against the longest real task list, confirming it now renders without clipping (or with less).
-- [ ] 3.2 Deploy with `pnpm run deploy` and force a panel refresh.
-- [ ] 3.3 Capture the panel (raw TRMNL PNG preferred, as in `strengthen-bullet-emphasis`) and confirm: the two children's rows read as separate rows of one table with the shared 2px border; stars and trophy are unchanged in legibility; all task lines shown are whole; the stamp is intact and clear of the grid.
-- [ ] 3.4 Record what the capture showed in `design.md` under a "What the panel found" section. If the merged border fails, apply the D32 fallback, record which one was taken and why, and re-verify.
+- [x] 3.1 Check `/admin/preview` against the longest real task list, confirming it now renders without clipping (or with less). Checked by a parent against live content.
+- [x] 3.2 Deploy with `pnpm run deploy` and force a panel refresh. Deployed as version `6e75d547`.
+- [x] 3.3 Capture the panel (raw TRMNL PNG preferred, as in `strengthen-bullet-emphasis`) and confirm: the two children's rows read as separate rows of one table with the shared 2px border; stars and trophy are unchanged in legibility; all task lines shown are whole; the stamp is intact and clear of the grid. Confirmed by eye on the physical panel; no raw PNG was pulled, as no type or grey level changed (see design.md "What the panel found").
+- [x] 3.4 Record what the capture showed in `design.md` under a "What the panel found" section. If the merged border fails, apply the D32 fallback, record which one was taken and why, and re-verify. Merged border passed; no fallback taken.
 
 ## 4. Sync and close out
 

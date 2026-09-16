@@ -138,3 +138,9 @@ No data migration. `BULLETS_COMFORTABLE` only affects when the admin warning app
 4. Deploy, force a panel refresh, and check the capture (D32's risk).
 
 **Rollback:** revert the deployment. The panel shows the old layout from its next capture onward, and lists over seven lines go back to being clipped.
+
+## What the panel found
+
+Deployed to production as Worker version `6e75d547` on 2026-09-16 and checked on the physical panel, against the live preview and a refreshed capture with real content. The parent's verdict was that everything looked right. That covers D32's open risk: the touching rows read as two children's rows of one table, and neither fallback was needed.
+
+**Recorded as a visual check, not a measurement.** Unlike D25–D30, no raw TRMNL PNG was pulled and nothing was measured pixel by pixel. That was proportionate here. This change moved no type size, weight, or grey level, so there were no stem widths to measure, and the one new pattern on the panel, a 2px `#AAA` rule between rows, is the same rule the grid already draws between days. If the rows ever turn out not to separate at viewing distance, the D32 fallbacks are still unused and still available.
