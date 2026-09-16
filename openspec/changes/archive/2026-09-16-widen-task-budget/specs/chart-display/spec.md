@@ -36,5 +36,6 @@ When the fixed canvas is divided between the task blocks and the sticker grid, t
 - **THEN** each child's grid row is no taller than its day squares, and the day squares keep the size at which the stickers were verified legible on the panel
 
 #### Scenario: Nine lines of tasks fit
+
 - **WHEN** a child's task list fills nine lines at the display's task type size
 - **THEN** all nine lines are drawn in full, and the sticker grid and render stamp remain fully visible and do not overlap

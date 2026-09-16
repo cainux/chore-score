@@ -23,4 +23,4 @@
 ## 4. Sync and close out
 
 - [x] 4.1 Sync the delta spec to `openspec/specs/chart-display/spec.md`.
-- [ ] 4.2 Archive the change.
+- [x] 4.2 Archive the change.
