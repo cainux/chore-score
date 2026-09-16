@@ -125,8 +125,12 @@
 		gap: 16px;
 		/* Capped so an over-long list cannot displace the grid below it. Surplus
 		   bullets are already dropped server-side; this is the backstop, and it
-		   matters more now that a long bullet wraps rather than being cut off. */
-		height: 230px;
+		   matters more now that a long bullet wraps rather than being cut off.
+		   286px: the 30px heading plus the list's 252px, and 4px left over from
+		   the rows below giving up their air — kept as clearance above the render
+		   stamp, because 4px is not a line (design.md D31-D32, widen-task-budget).
+		   Was 230px around a 7-line list. */
+		height: 286px;
 		overflow: hidden;
 	}
 
@@ -154,12 +158,16 @@
 		margin: 0;
 		padding-left: 0;
 		list-style: none;
-		/* Exactly 7 lines at the line height below. A whole number of them, so a
-		   clipped list ends on a line that is fully drawn rather than on one
-		   sliced through the middle. Dropped from 8 when the type grew from 20px
-		   to 22px (design.md D25-D28, improve-bullet-legibility): the extra line
-		   was budget nothing had used, and the panel had never rendered past 6. */
-		height: 196px;
+		/* Exactly 9 lines (9 × 28 = 252px) at the line height below. A whole
+		   number of them, so a clipped list ends on a line that is fully drawn
+		   rather than on one sliced through the middle. Dropped from 8 to 7 when
+		   the type grew from 20px to 22px (design.md D25-D28,
+		   improve-bullet-legibility): the extra line was budget nothing had used,
+		   and the panel had never rendered past 6. Raised from 7 to 9 once real
+		   lists outgrew that and were being clipped on the wall — paid for by the
+		   grid rows' empty space, not by smaller type (design.md D31,
+		   widen-task-budget). */
+		height: 252px;
 		overflow: hidden;
 	}
 
@@ -229,8 +237,15 @@
 		color: #555555;
 	}
 
+	/* Exactly the cell height, so the two children's rows touch. Each cell
+	   carries its own 1px border, so where the rows meet two borders form a 2px
+	   rule — the same weight as the one between adjacent days — and the grid
+	   reads as one table. 44px would leave two rules 2px apart, a near-miss that
+	   dithers into a smudged double line; 46px would not free two whole task
+	   lines (design.md D32). Was 72px: 30px of air per row that carried nothing,
+	   given to the task list instead (D31, widen-task-budget). */
 	.row {
-		height: 72px;
+		height: 42px;
 	}
 
 	/* The name gutter belongs to the first week only; the second week's columns

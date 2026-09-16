@@ -1,10 +1,10 @@
 ## 1. Layout
 
-- [ ] 1.1 In `src/lib/display/Panel.svelte`, set `.row` height from 72px to 42px (D31, D32) and update the grid comments to say why the rows are exactly the cell height.
-- [ ] 1.2 Set `.task-block ul` height from 196px to 252px (9 × 28) and `.tasks` height from 230px to 286px. Update the comments that cite "Exactly 7 lines" and the 20px→22px history so they name 9 lines and cite D31.
-- [ ] 1.3 In `src/lib/settings.ts`, set `BULLETS_MAX` to 9 and `BULLETS_COMFORTABLE` to 7 (D33), and update the doc comment's "7 rendered lines", "196px" and "7/5" references.
-- [ ] 1.4 Confirm the admin warning in `src/routes/admin/+page.svelte` still reads correctly with the new constant (it interpolates `BULLETS_COMFORTABLE`; no wording change expected).
-- [ ] 1.5 Update the D6 layout sketch reference in any remaining code comment that cites 72px rows or 230px task band (`grep -rn '72px\|230\|196' src`).
+- [x] 1.1 In `src/lib/display/Panel.svelte`, set `.row` height from 72px to 42px (D31, D32) and update the grid comments to say why the rows are exactly the cell height.
+- [x] 1.2 Set `.task-block ul` height from 196px to 252px (9 × 28) and `.tasks` height from 230px to 286px. Update the comments that cite "Exactly 7 lines" and the 20px→22px history so they name 9 lines and cite D31.
+- [x] 1.3 In `src/lib/settings.ts`, set `BULLETS_MAX` to 9 and `BULLETS_COMFORTABLE` to 7 (D33), and update the doc comment's "7 rendered lines", "196px" and "7/5" references.
+- [x] 1.4 Confirm the admin warning in `src/routes/admin/+page.svelte` still reads correctly with the new constant (it interpolates `BULLETS_COMFORTABLE`; no wording change expected).
+- [x] 1.5 Update the D6 layout sketch reference in any remaining code comment that cites 72px rows or 230px task band (`grep -rn '72px\|230\|196' src`).
 
 ## 2. Tests
 
