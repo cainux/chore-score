@@ -38,23 +38,26 @@ export const NAME_MAX_GRAPHEMES = 16;
 /**
  * Bullets the display renders before clipping.
  *
- * The hard number underneath both of these is **7 rendered lines** — the task
- * block is 196px of 28px line boxes (design.md D6, D28). It is lines and not
- * bullets because bullets wrap: at 22px in a 376px column a bullet runs to
+ * The hard number underneath both of these is **9 rendered lines** — the task
+ * block is 252px of 28px line boxes (design.md D6, D28, D31). It is lines and
+ * not bullets because bullets wrap: at 22px in a 376px column a bullet runs to
  * about 34 characters, and a real one like `Exercise 11 part 2 - hands
- * together (thumb crossover)` takes two of the seven.
+ * together (thumb crossover)` takes two of the nine.
  *
  * So `MAX` is the ceiling for a list of short bullets, and the warning fires at
  * `COMFORTABLE` to leave room for the ones that wrap. This dropped from 8/6 to
  * 7/5 when the type grew from 20px to 22px (design.md D25-D28,
  * improve-bullet-legibility) — the eighth line was budget nothing had used, so
- * spending it on legible bullets cost nothing real.
+ * spending it on legible bullets cost nothing real. It rose again to 9/7 when
+ * real lists outgrew seven lines and were being clipped on the wall; the two
+ * extra lines came out of the grid rows' empty space (design.md D31-D33,
+ * widen-task-budget). The two-line gap between the numbers is unchanged.
  *
  * The display clips as a backstop and the admin page warns past the comfortable
  * count without blocking the save (D12).
  */
-export const BULLETS_COMFORTABLE = 5;
-export const BULLETS_MAX = 7;
+export const BULLETS_COMFORTABLE = 7;
+export const BULLETS_MAX = 9;
 
 /**
  * The display typeface stack.
