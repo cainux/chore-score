@@ -8,9 +8,9 @@
 
 ## 2. Tests
 
-- [ ] 2.1 Add an e2e test in `e2e/display.e2e.ts` that the grid's bounding box does not overlap the render stamp's.
-- [ ] 2.2 Add a client test in `src/lib/display/Panel.svelte.spec.ts` that a list of nine one-line bullets is drawn in full: the ninth `li`'s bottom is within the list's bottom edge.
-- [ ] 2.3 Add a client test that a grid row is no taller than its day cell (the spec's "no empty space at the expense of task lines" scenario).
+- [x] 2.1 Add an e2e test in `e2e/display.e2e.ts` that the grid's bounding box does not overlap the render stamp's.
+- [x] 2.2 Add a client test in `src/lib/display/Panel.svelte.spec.ts` that a list of nine one-line bullets is drawn in full: the ninth `li`'s bottom is within the list's bottom edge.
+- [x] 2.3 Add a client test that a grid row is no taller than its day cell (the spec's "no empty space at the expense of task lines" scenario).
 - [ ] 2.4 Run `pnpm check`, `pnpm lint`, and `pnpm test`; existing relational layout tests (whole-number line clip, grid/stamp within 480, `BULLETS_MAX` clip) should pass unchanged.
 
 ## 3. Verify on the panel

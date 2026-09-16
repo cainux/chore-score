@@ -194,6 +194,24 @@ test.describe('the display page fits its panel', () => {
 		expect(stamp!.x + stamp!.width).toBeGreaterThan(600);
 	});
 
+	test('keeps the grid clear of the render stamp', async ({ page }) => {
+		// Each staying within 480 is not the same as not colliding. The grid's
+		// last-week trophy column sits directly above the stamp, and
+		// widen-task-budget was the first change to move the grid since that band
+		// was reserved (design.md D10, D31).
+		await page.goto('/display');
+		await page.evaluate(() => document.fonts.ready);
+
+		const grid = (await page.locator('.grid').boundingBox())!;
+		const stamp = (await page.locator('.stamp').boundingBox())!;
+		const overlaps =
+			grid.x < stamp.x + stamp.width &&
+			stamp.x < grid.x + grid.width &&
+			grid.y < stamp.y + stamp.height &&
+			stamp.y < grid.y + grid.height;
+		expect(overlaps).toBe(false);
+	});
+
 	test('is complete with JavaScript disabled', async ({ browser }) => {
 		// The real client runs a headless browser to take one photograph. If any
 		// of this depended on script, the capture could catch the page mid-build.

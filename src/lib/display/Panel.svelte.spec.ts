@@ -162,6 +162,17 @@ describe('the panel canvas', () => {
 		expect(stamp).toBeLessThan(rule);
 	});
 
+	it('packs each grid row to the height of its day squares', async () => {
+		// Air between the rows carries nothing a child reads, and task lines do:
+		// the canvas spends its height on the list before it spends it on empty
+		// grid (design.md D31, D32).
+		const page = render(Panel, { view: view() });
+		for (const row of page.baseElement.querySelectorAll('.row')) {
+			const cell = row.querySelector('.cell')!.getBoundingClientRect();
+			expect(row.getBoundingClientRect().height).toBeLessThanOrEqual(cell.height);
+		}
+	});
+
 	it('renders each child bullets under their own name', async () => {
 		const page = render(Panel, { view: view() });
 		const blocks = page.baseElement.querySelectorAll('.task-block');
@@ -241,6 +252,22 @@ describe('the panel canvas', () => {
 			(li) => li.getBoundingClientRect().bottom <= block.bottom
 		);
 		expect(visible.length).toBeLessThan(30);
+	});
+
+	it('draws a list of nine one-line tasks in full', async () => {
+		// Nine lines is the budget the grid gave up its air for. A literal rather
+		// than `BULLETS_MAX`, because this is the canvas's promise and the setting
+		// is only meant to agree with it (design.md D31, D33).
+		const nine = view();
+		nine.rows[0].bullets = Array.from({ length: 9 }, (_, i) => `Task ${i}`);
+		const page = render(Panel, { view: nine });
+
+		const list = page.baseElement.querySelector('.task-block ul')!;
+		const items = list.querySelectorAll('li');
+		expect(items).toHaveLength(9);
+		expect(items[8].getBoundingClientRect().bottom).toBeLessThanOrEqual(
+			list.getBoundingClientRect().bottom
+		);
 	});
 
 	it('wraps a long bullet rather than cutting it off', async () => {
